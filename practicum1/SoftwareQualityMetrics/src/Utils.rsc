@@ -1,5 +1,11 @@
 module Utils
 
+/**
+	@author Ivo Willemsen
+	This module contains utility methods 
+**/
+
+import ListRelation;
 import List;
 import Map;
 import Relation;
@@ -9,10 +15,7 @@ import util::Resources;
 import lang::java::jdt::m3::Core;
 import analysis::m3::Core;
 
-/**
-	@author Ivo Willemsen
-	This module contains utility methods 
-**/
+int MAXINT = 9999999;
 
 /**
    This method retrieves the number of lines per file given an Eclipse project
@@ -21,22 +24,8 @@ import analysis::m3::Core;
    @type 
    		the type of the file
 **/
-public rel[loc, int] getLOCPerSourceFile(loc location, str fileType) {
-	return {<a, size(readFileLines(a))> | a <- getSourceFilesInLocation(location, fileType)};
-}
-
-/**
-	Gets the total number of lines in the Eclipse project that coincide with the filetype
-	@location 
-   		the Eclipse project location
-	@type 
-   		the type of the file
-**/
-public int getTotalLOC(loc location, str fileType) {
-	int totalLines = 0;
-	for (a <- getLOCPerSourceFile(location, fileType))
-		totalLines += a;
-	return totalLines;
+public list[tuple[loc location, int lOCs]] getLOCPerSourceFile(loc location, str fileType) {
+	return [<a, size(readFileLines(a))> | a <- getSourceFilesInLocation(location, fileType)];
 }
 
 /**
@@ -53,9 +42,3 @@ private set[loc] getSourceFilesInLocation(loc location, str fileType) {
 	return { a | /file(a) <- jabber, a.extension == fileType };
 }
 
-
-public void main() {
-	//println(getSourceFilesInLocation(|project://JabberPoint/|, "java"));
-	println(getLOCPerSourceFile(|project://JabberPoint/|, "java"));
-	
-}
