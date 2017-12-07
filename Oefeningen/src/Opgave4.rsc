@@ -11,7 +11,7 @@ private list[str] getCountriesContainingLetterA(list[str] eu) {
 }
 
 private list[str] getCountriesContainingAtleastTwoEs(list[str] eu) {
-	return 
+	return   
 		for (s <- eu) 
 			if (/e.*e/i := s)
 				append s;
