@@ -35,7 +35,7 @@ private num getTotalLOC(loc location, str fileType) {
 }
 
 /**
-	This methods prints the total LOC of the system and the associated rank
+	This methods collects the metric and the associated rank
 	@location 
    		the Eclipse project location
 	@type 
