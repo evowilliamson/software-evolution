@@ -19,7 +19,8 @@ import String;
 int MAXINT = 9999999;
 
 /**
-   This method retrieves the number of lines per file given an Eclipse project
+   This method retrieves the number of lines per file given an Eclipse project and stores it together with the 
+   location in a list
    @location 
    		the Eclipse project location
    @type 
@@ -28,6 +29,19 @@ int MAXINT = 9999999;
 public list[tuple[loc location, int lOCs]] getLOCPerSourceFile(loc location, str fileType) {
 	return [<a, getNumberOfLinesInString(filterCode(readFile(a)))> | a <- getSourceFilesInLocation(location, fileType)];
 }
+
+/**
+   This method retrieves the code of all source files given an Eclipse project and stores it together with the 
+   location in a list
+   @location 
+   		the Eclipse project location
+   @type 
+   		the type of the file
+**/
+public list[tuple[loc location, str code]] getSourceFiles(loc location, str fileType) {
+	return [<a, filterCode(readFile(a))> | a <- getSourceFilesInLocation(location, fileType)];
+}
+
 
 /**
 	Determines the number of newline characters in the string

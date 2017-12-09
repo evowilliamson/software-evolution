@@ -26,7 +26,7 @@ str METRIC_NAME = "Volume";
 	@type 
    		the type of the file
 **/
-private num getTotalLOC(loc location, str fileType) {
+public num getTotalLOC(loc location, str fileType) {
 	int totalLines = 0;
 	for (a <- getLOCPerSourceFile(location, fileType))
 		totalLines += a.lOCs;
@@ -36,12 +36,12 @@ private num getTotalLOC(loc location, str fileType) {
 
 /**
 	This methods collects the metric and the associated rank
-	@location 
-   		the Eclipse project location
-	@type 
+	@totalLOC total number of lines in the code 
    		the type of the file
+   	return: tuple with the combination of name of the metric, total K number of LOC and the rank
 **/
-public tuple[str, num, str] getMetric(loc location, str fileType) {
+public tuple[str, num, str] getMetric(num totalLOC) {
+	num totalKLOC = totalLOC/1000;
 	ThresholdRanks thresholdRanks = [
 		<66, "++">,
 		<246, "+">,
@@ -49,6 +49,5 @@ public tuple[str, num, str] getMetric(loc location, str fileType) {
 		<1310, "-">,
 		<Utils::MAXINT, "--">
 	];
-	num totalKLOC = getTotalLOC(location, fileType)/1000;
 	return <METRIC_NAME, totalKLOC, Threshold::getRank(totalKLOC, thresholdRanks)>;		
 }

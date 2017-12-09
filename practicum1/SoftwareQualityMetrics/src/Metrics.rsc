@@ -12,5 +12,11 @@ import IO;
 	Entrance to metrics system
 **/
 public void main() {
-	println(Volume::getMetric(|project://smallsql/|, "java"));
+
+	num totalLOC = Volume::getTotalLOC(|project://smallsql/|, "java");
+	println(Volume::getMetric(totalLOC));
+	
+	
+	
+	
 }
