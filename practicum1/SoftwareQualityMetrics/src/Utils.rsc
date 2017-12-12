@@ -31,19 +31,6 @@ public list[tuple[loc location, int lOCs]] getLOCPerSourceFile(loc location, str
 }
 
 /**
-   This method retrieves the code of all source files given an Eclipse project and stores it together with the 
-   location in a list
-   @location 
-   		the Eclipse project location
-   @type 
-   		the type of the file
-**/
-public list[tuple[loc location, str code]] getSourceFiles(loc location, str fileType) {
-	return [<a, filterCode(readFile(a))> | a <- getSourceFilesInLocation(location, fileType)];
-}
-
-
-/**
 	Determines the number of newline characters in the string
 	@theString: The string that needs to be searched for newline characters
 **/
@@ -66,15 +53,48 @@ private set[loc] getSourceFilesInLocation(loc location, str fileType) {
 }
 
 /**
-	This method filters out comments and white lines from the code. It uses the visit statement
+	This method filters out comments. It uses the visit statement
 	in order to examine the input string repeatedly for patterns
 	@str the input string
-	return: the filtered code
+	return: the source code that does not contain comments
 **/
-private str filterCode(str input) {
+private str removeComments(str input) {
     return visit(input) {
-       case /(?s)\/\*.*?\*\// => ""    // Block comments, use (?s) to treat the regular expression as single-line mode
-       case /\/\/.*/ => ""             // One-line comments
-       case /^\s*$/ => ""              // Remove "empty" lines
+       case /\/\*.[\s\S]*?\*\/|\/\/.*/ => ""    // Block comments and line comments
     };
+}
+
+/**
+	This method removes empty lines from the source code
+	@str the input string
+	return: the source code that does not contain empty lines
+**/
+private str removeEmptyLines(str input) {
+    return replaceAll(input, "\n\n", "\n");
+}
+
+/*
+	This method filters out unnecessary lines, i.e. lines that are not part of the source code
+	@str the input string
+	return: the filtered source code 
+*/
+private str filterCode(str input) {
+	return removeEmptyLines(removeComments(input));
+}
+
+/**
+	This method tests the filterCode method
+**/
+private void testFilterCode() {
+	s = "line1\nline2\n   /* block comment \n\n continued */ \n // fdklfkldfkld \n // fkldkflkd lfdf \n\n /* block comment */ jjjjj j\n hhhh";
+	println(s);
+	println("Converted:");
+	println(filterCode(s));
+}
+
+/**
+	Calls the test methods
+**/
+public void main() {
+	testFilterCode();
 }
