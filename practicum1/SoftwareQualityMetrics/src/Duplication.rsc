@@ -62,10 +62,9 @@ private void procesSource(loc location, str code) {
 	
 }
 
-private bool checkDuplication(str codeStringToCheck) {
+private void checkDuplication(str codeStringToCheck) {
 
 	// Check in other sources for duplications
-	bool duplicationFound = false;
 	for (source <- sourcesMap) {
 		code = sourcesMap[source];
 		int lengthOldCode = size(code);
@@ -74,12 +73,9 @@ private bool checkDuplication(str codeStringToCheck) {
 		if (lengthNewCode != lengthOldCode) {
 			duplicaton_lines = duplicaton_lines + (lengthOldCode - size(code)) / size(codeStringToCheck) * WINDOW_SIZE;
 			sourceMap = sourceMap + (source : code);
-			dupicationFound = true;
 		}
 		
 	};	
-	
-	return dupicationFound;
 	
 }
 
