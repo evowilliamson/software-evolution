@@ -4,6 +4,7 @@ import IO;
 import Utils;
 import Threshold;
 import String;
+import List;
 
 /**
 	This methods collects the metric and the associated rank
@@ -15,6 +16,7 @@ import String;
 
 int WINDOW_SIZE = 6;
 map[loc location, str code] sourcesMap = ();
+int duplicationLines = 0;
 
 /**
 	This method calculates the 
@@ -33,10 +35,52 @@ public void getMetric(loc location, str fileType, num totalLOC) {
 	// Get all sources and store it together with the location in a list
 	sourcesMap = getSourceFiles(location, fileType);
 	for (source <- sourcesMap) {
-		println(findAll(sourcesMap[source], "\n"));
-		println(sourcesMap[source]);
+		procesSource(source, sourcesMap[source]); 
 	};
 		
+}
+
+private void procesSource(loc location, str code) {
+
+	println("***************************************************");
+	list[int] eoLines = findAll(code, "\n");
+	println(eoLines);
+	int index = 0;
+	int positionFirstChar = 0;
+	while (index + WINDOW_SIZE < size(eoLines)) {
+		list[int] slice = eoLines[index..index + WINDOW_SIZE];
+		println(slice);
+		str codeStringToCheck = substring(code, positionFirstChar, slice[WINDOW_SIZE - 1] + 1);
+		println(codeStringToCheck);
+		println(split("", codeStringToCheck));
+		str selfCode = replaceFirst(code, codeStringToCheck, "" );
+		sourceMap = sourceMap + (location : selfCode);
+		checkDuplication(codeStringToCheck);
+		index = index + 1;
+		positionFirstChar = slice[0] + 1;
+	};
+	
+}
+
+private bool checkDuplication(str codeStringToCheck) {
+
+	// Check in other sources for duplications
+	bool duplicationFound = false;
+	for (source <- sourcesMap) {
+		code = sourcesMap[source];
+		int lengthOldCode = size(code);
+		code = replaceAll(code, codeStringToCheck, "");
+		int lengthNewCode = size(code);
+		if (lengthNewCode != lengthOldCode) {
+			duplicaton_lines = duplicaton_lines + (lengthOldCode - size(code)) / size(codeStringToCheck) * WINDOW_SIZE;
+			sourceMap = sourceMap + (source : code);
+			dupicationFound = true;
+		}
+		
+	};	
+	
+	return dupicationFound;
+	
 }
 
 /**
@@ -48,7 +92,7 @@ public void getMetric(loc location, str fileType, num totalLOC) {
    		the type of the file
 **/
 public map[loc location, str code] getSourceFiles(loc location, str fileType) {
-	return (a: Utils::removeEmptyLines(removeImports(Utils::filterCode(readFile(a)))) | a <- Utils::getSourceFilesInLocation(location, fileType));
+	return (a: Utils::filterCode(readFile(a)) | a <- Utils::getSourceFilesInLocation(location, fileType));
 }
 
 public list[tuple[loc location, str code]] getSourceFiles2(loc location, str fileType) {
@@ -70,8 +114,9 @@ private void testRemoveImports() {
 }
 
 public void testGetMetrics() {
-	getMetric(|project://Jabberpoint/|, "java", 10000);
+	//getMetric(|project://Jabberpoint/|, "java", 10000);
 	//getMetric(|project://smallsql/|, "java", 10000);
+	getMetric(|project://Bla/|, "java", 10000);
 }
 
 public void main() {
