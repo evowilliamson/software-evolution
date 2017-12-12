@@ -2,6 +2,8 @@ module Duplication
 
 import IO;
 import Utils;
+import Threshold;
+import String;
 
 /**
 	This methods collects the metric and the associated rank
@@ -12,11 +14,13 @@ import Utils;
 **/
 
 int WINDOW_SIZE = 6;
+map[loc location, str code] sourcesMap = ();
 
 /**
 	This method calculates the 
 **/
-public tuple[str, num, str] getMetric(loc location, str fileType, num totalLOC) {
+//public tuple[str, num, str] getMetric(loc location, str fileType, num totalLOC) {
+public void getMetric(loc location, str fileType, num totalLOC) {
 	ThresholdRanks thresholdRanks = [
 		<66, "++">,
 		<246, "+">,
@@ -27,10 +31,10 @@ public tuple[str, num, str] getMetric(loc location, str fileType, num totalLOC) 
 	
 	
 	// Get all sources and store it together with the location in a list
-	list[tuple[loc location, str code]] sources = getSourceFiles(location, fileType);
-	
-	for (a <- sources) {
-		
+	sourcesMap = getSourceFiles(location, fileType);
+	for (source <- sourcesMap) {
+		println(findAll(sourcesMap[source], "\n"));
+		println(sourcesMap[source]);
 	};
 		
 }
@@ -43,24 +47,33 @@ public tuple[str, num, str] getMetric(loc location, str fileType, num totalLOC) 
    @type 
    		the type of the file
 **/
-public list[tuple[loc location, str code]] getSourceFiles(loc location, str fileType) {
-	return [<a, Utils::removeImports(Utils::filterCode(readFile(a)))> | a <- Utils::getSourceFilesInLocation(location, fileType)];
+public map[loc location, str code] getSourceFiles(loc location, str fileType) {
+	return (a: Utils::removeEmptyLines(removeImports(Utils::filterCode(readFile(a)))) | a <- Utils::getSourceFilesInLocation(location, fileType));
 }
 
+public list[tuple[loc location, str code]] getSourceFiles2(loc location, str fileType) {
+	return [<a, removeImports(Utils::filterCode(readFile(a)))> | a <- Utils::getSourceFilesInLocation(location, fileType)];
+}
 
 private str removeImports(str input) {
+	// import space! this one cannot be removed: imports(...
     return visit(input) {
        case /(?m)^[\s]*?import[\s\S]*?$/ => "" 
     };
 }
 
 private void testRemoveImports() {
-	str s = "import bla \n import blabla\nfkjdfkdjf kfjf dkfd\nkfdjfkdf\nfjkdsjfkd;\n  import fjdkfjkdf \n\n import import \njfkdjfkd";
+	str s = "import bla \n import blabla\nfkjdfkdjf kfjf dkfd\nkfdjfkdf\nfjkdsjfkd;\n fff import fjdkfjkdf \n\n import import \njfkdjfkd";
 	println(s);
 	println("Converted: ");
 	println(removeImports(s));
 }
 
+public void testGetMetrics() {
+	getMetric(|project://Jabberpoint/|, "java", 10000);
+	//getMetric(|project://smallsql/|, "java", 10000);
+}
+
 public void main() {
-	testRemoveImports();
+	testGetMetrics();
 }

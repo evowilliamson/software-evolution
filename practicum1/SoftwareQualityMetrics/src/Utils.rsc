@@ -58,9 +58,9 @@ private set[loc] getSourceFilesInLocation(loc location, str fileType) {
 	@str the input string
 	return: the source code that does not contain comments
 **/
-private str removeComments(str input) {
+private str removeCommentsWhiteSpace(str input) {
     return visit(input) {
-       case /\/\*.[\s\S]*?\*\/|\/\/.*/ => ""    // Block comments and line comments
+       case /\/\*.[\s\S]*?\*\/|\/\/.*|[ \t]+/ => ""    // Block comments and line comments
     };
 }
 
@@ -79,14 +79,14 @@ private str removeEmptyLines(str input) {
 	return: the filtered source code 
 */
 private str filterCode(str input) {
-	return removeEmptyLines(removeComments(input));
+	return removeEmptyLines(removeCommentsWhiteSpace(input));
 }
 
 /**
 	This method tests the filterCode method
 **/
 private void testFilterCode() {
-	s = "line1\nline2\n   /* block comment \n\n continued */ \n // fdklfkldfkld \n // fkldkflkd lfdf \n\n /* block comment */ jjjjj j\n hhhh";
+	s = "line1\nline2\n   /* block comment \n\n continued */ \n // fdklfkldfkld \n // fkldkflkd lfdf \nfsdfsdfdfd\n /* block comment */ jjjjj fdfdj jfkjdfkjdfd\n hhhh";
 	println(s);
 	println("Converted:");
 	println(filterCode(s));
