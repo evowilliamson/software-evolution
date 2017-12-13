@@ -5,15 +5,8 @@ import Utils;
 import Threshold;
 import String;
 import List;
+import Map;
 import Volume;
-
-/**
-	This methods collects the metric and the associated rank
-	@location 
-   		the Eclipse project location
-	@type 
-   		the type of the file
-**/
 
 int WINDOW_SIZE = 6;
 map[loc location, str code] sourcesMap = ();
@@ -35,8 +28,9 @@ public void getMetric(loc location, str fileType, num totalLOC) {
 	
 	// Get all sources and store it together with the location in a list
 	sourcesMap = getSourceFiles(location, fileType);
+	
+	println(size(sourcesMap));
 	for (source <- sourcesMap) {
-		println("ongoing source: ");
 		println(source);
 		processSource(source, sourcesMap[source]); 
 	};
@@ -52,58 +46,30 @@ public void getMetric(loc location, str fileType, num totalLOC) {
 
 private void processSource(loc location, str code) {
 
-	println("***************************************************");
 	list[int] eoLines = findAll(code, "\n");
-	println(eoLines);
-	println(size(eoLines));
 	int index = 0;
 	int positionFirstChar = 0;
 	set[str] foundSet = {};
 	while (index + WINDOW_SIZE <= size(eoLines)) {
 	
 		list[int] slice = eoLines[index..index + WINDOW_SIZE];
-		println(slice);
 		
 		str codeStringToCheck = substring(code, positionFirstChar, slice[WINDOW_SIZE - 1] + 1);
-		println("codeStringToCheck: ");
-		println(codeStringToCheck);
-		println(split("", codeStringToCheck));
 		
-		if (foundInCurrentSource(codeStringToCheck, code)) {
-			println("foundInCurrentSource is true:");
-			println(codeStringToCheck);
+		if (foundDuplicationsInCurrentSource(codeStringToCheck, code)) {
 			raiseDuplications();
-			if (!foundBefore(codeStringToCheck, foundSet)) {
-				println("foundBefore is false:");	
-				foundSet = foundSet + codeStringToCheck;
-				if (checkDuplicationsInOtherSources(codeStringToCheck, location)) {
-					println("checkDuplicationsInOtherSources is true");	
-					index = index + WINDOW_SIZE;
-					positionFirstChar = slice[WINDOW_SIZE - 1] + 1;
-					list[int] slice = eoLines[index..index + WINDOW_SIZE];
-				}
-				else {
-					println("checkDuplicationsInOtherSources is false");	
-					index = index + 1;
-					positionFirstChar = slice[0] + 1;
-				}
-			}
-			else {
-				println("foundBefore is true:");	
-				index = index + 1;
-				positionFirstChar = slice[0] + 1;
-			};
+			index = index + WINDOW_SIZE;
+			positionFirstChar = slice[WINDOW_SIZE - 1] + 1;
+			list[int] slice = eoLines[index..index + WINDOW_SIZE];
 		}
 		else {
-			println("foundInCurrentSource is false:");	
 			if (checkDuplicationsInOtherSources(codeStringToCheck, location)) {
-				println("checkDuplicationsInOtherSources is true:");	
+				raiseDuplications();
 				index = index + WINDOW_SIZE;
 				positionFirstChar = slice[WINDOW_SIZE - 1] + 1;
 				list[int] slice = eoLines[index..index + WINDOW_SIZE];
 			}
 			else {
-				println("checkDuplicationsInOtherSources is false");	
 				index = index + 1;
 				positionFirstChar = slice[0] + 1;
 			}
@@ -117,7 +83,7 @@ private void processSource(loc location, str code) {
 	
 }
 
-private bool foundInCurrentSource(str codeStringToCheck, str code) {
+private bool foundDuplicationsInCurrentSource(str codeStringToCheck, str code) {
 	return size(findAll(code, codeStringToCheck)) >= 2;
 }
 
@@ -126,15 +92,7 @@ private bool foundBefore(str code, set[str] foundSet) {
 }
 
 private void raiseDuplications() {
-	duplicationLines = duplicationLines + WINDOW_SIZE;	
-}
-
-/**
-	This method checks in the source itself for duplications. If duplications are found,
-	only in instance of the affected code is maintained and the rest is removed for further
-	processing (duplication checks in other sources)
-**/	
-private str checkDuplicationInSelf(str code) {
+	duplicationLines = duplicationLines + WINDOW_SIZE;
 }
 
 /**
@@ -146,13 +104,10 @@ private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
 	// Check in other sources for duplications
 	for (source <- sourcesMap) {
 		if (source != self && checkDuplicationInCurrentSource(codeStringToCheck, sourcesMap[source])) {
-			println("duplication found in: ");
-			println(source);
 			found = true;
 		};
 	};	
-	
-	
+
 	return found;
 	
 }
@@ -160,9 +115,6 @@ private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
 private bool checkDuplicationInCurrentSource(str codeStringToCheck, str code) {
 
 	if (findFirst(code, codeStringToCheck) != -1) {
-		raiseDuplications();
-		println("current duplicationLines: ");
-		println(duplicationLines);
 		return true;	
 	};
 	
@@ -203,8 +155,8 @@ private void testRemoveImports() {
 public void testGetMetrics() {
 	//getMetric(|project://Jabberpoint/|, "java", 10000);
 	//getMetric(|project://smallsql/|, "java", 10000);
-	num totalLOC = Volume::getTotalLOC(|project://Bla/|, "java");
-	getMetric(|project://Bla/|, "java", totalLOC);
+	num totalLOC = Volume::getTotalLOC(|project://smallsql/|, "java");
+	getMetric(|project://smallsql/|, "java", totalLOC);
 }
 
 public void main() {
