@@ -62,6 +62,7 @@ private str removeCommentsWhiteSpace(str input) {
     return visit(input) {
        case /\/\*.[\s\S]*?\*\/|\/\/.*|[ \t]+/ => ""    // Block comments and line comments
     };
+    
 }
 
 /**
@@ -70,7 +71,9 @@ private str removeCommentsWhiteSpace(str input) {
 	return: the source code that does not contain empty lines
 **/
 private str removeEmptyLines(str input) {
-    return replaceAll(input, "\n\n", "\n");
+    return visit(input) {
+       case /(\r\n\r\n)+|(\n\n)+/ => "\n"    // Block comments and line comments
+    };
 }
 
 /*
@@ -86,7 +89,7 @@ private str filterCode(str input) {
 	This method tests the filterCode method
 **/
 private void testFilterCode() {
-	s = "line1\nline2\n   /* block comment \n\n continued */ \n // fdklfkldfkld \n // fkldkflkd lfdf \nfsdfsdfdfd\n /* block comment */ jjjjj fdfdj jfkjdfkjdfd\n hhhh";
+	s = "line1\nline2\n fdfdf\r\n\r\nfdfdf  /* block comment \n\n continued */ \n // fdklfkldfkld \n // fkldkflkd lfdf \nfsdfsdfdfd\n /* block comment */ jjjjj fdfdj jfkjdfkjdfd\n hhhh";
 	println(s);
 	println("Converted:");
 	println(filterCode(s));

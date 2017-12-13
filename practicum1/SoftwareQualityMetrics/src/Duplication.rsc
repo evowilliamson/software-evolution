@@ -8,14 +8,16 @@ import List;
 import Map;
 import Volume;
 
-int WINDOW_SIZE = 6;
-map[loc location, str code] sourcesMap = ();
-int duplicationLines = 0;
+data WindowSlider = WindowSlider(int lineIndex, int positionFirstChar, list[int] eoLines, list[int] slice);
+
+private int WINDOW_SIZE = 6;
+private map[loc location, str code] sourcesMap = ();
+private int duplicationLines = 0;
+private WindowSlider windowSlider = WindowSlider(0, 0, [], []);
 
 /**
 	This method calculates the 
 **/
-//public tuple[str, num, str] getMetric(loc location, str fileType, num totalLOC) {
 public void getMetric(loc location, str fileType, num totalLOC) {
 	ThresholdRanks thresholdRanks = [
 		<66, "++">,
@@ -32,7 +34,7 @@ public void getMetric(loc location, str fileType, num totalLOC) {
 	println(size(sourcesMap));
 	for (source <- sourcesMap) {
 		println(source);
-		processSource(source, sourcesMap[source]); 
+		detectDuplications(source, sourcesMap[source]); 
 	};
 
 	println("totalLoc: ");
@@ -40,63 +42,127 @@ public void getMetric(loc location, str fileType, num totalLOC) {
 	println("final duplication: ");
 	println(duplicationLines);
 	println((duplicationLines / totalLOC) * 100);
-	
 		
 }
 
-private void processSource(loc location, str code) {
+/**
+	This method checks the code for duplications in other sources. It also checks whether there
+	are duplications in the code itself
+	@location the location of the source 
+	@code the source  code
+	returns: void
+**/	
+private void detectDuplications(loc location, str code) {
 
-	list[int] eoLines = findAll(code, "\n");
-	int index = 0;
-	int positionFirstChar = 0;
-	set[str] foundSet = {};
-	while (index + WINDOW_SIZE <= size(eoLines)) {
-	
-		list[int] slice = eoLines[index..index + WINDOW_SIZE];
-		
-		str codeStringToCheck = substring(code, positionFirstChar, slice[WINDOW_SIZE - 1] + 1);
+	windowSlider = WindowSlider(0, 0, findAll(code, "\n"), []);
+	println(split("", code));
+	while (canTakeNextSlice(windowSlider)) {
+		windowSlider = takeNextSlice(windowSlider);
+		str codeStringToCheck = getCodeString(windowSlider, code);
+		println(codeStringToCheck);
 		
 		if (foundDuplicationsInCurrentSource(codeStringToCheck, code)) {
 			raiseDuplications();
-			index = index + WINDOW_SIZE;
-			positionFirstChar = slice[WINDOW_SIZE - 1] + 1;
-			list[int] slice = eoLines[index..index + WINDOW_SIZE];
+			windowSlider = slideWindowOverDuplication(windowSlider);
 		}
 		else {
 			if (checkDuplicationsInOtherSources(codeStringToCheck, location)) {
 				raiseDuplications();
-				index = index + WINDOW_SIZE;
-				positionFirstChar = slice[WINDOW_SIZE - 1] + 1;
-				list[int] slice = eoLines[index..index + WINDOW_SIZE];
+				windowSlider = slideWindowOverDuplication(windowSlider);			
 			}
 			else {
-				index = index + 1;
-				positionFirstChar = slice[0] + 1;
+				windowSlider = slideWindowToNextLine(windowSlider);
 			}
 		};
 
 	};
 	
-	println("duplication: ");
-	println(duplicationLines);
-	println(foundSet);
-	
 }
 
+/**
+	This method checks whether a next slice can be taken.
+	@windowSlider the current windowSlider
+	returns: true if a new slice can be taken, false if not the case 
+**/
+private bool canTakeNextSlice(WindowSlider windowSlider) {
+	return windowSlider.lineIndex + WINDOW_SIZE <= size(windowSlider.eoLines);
+}
+
+/**
+	This method takes the next slice
+	@windowSlider the current windowSlider
+	returns: updated windowSlider with new slice 
+**/
+private WindowSlider takeNextSlice(WindowSlider windowSlider) {
+	return WindowSlider(
+			windowSlider.lineIndex, 
+			windowSlider.positionFirstChar, 
+			windowSlider.eoLines, 
+			windowSlider.eoLines[windowSlider.lineIndex..windowSlider.lineIndex + WINDOW_SIZE]);
+}
+
+/**
+	This method slides the window to the next line
+	@windowSlider the window slider
+	returns: The updated window slider
+**/
+private WindowSlider slideWindowToNextLine(WindowSlider windowSlider) {
+	return WindowSlider(
+			windowSlider.lineIndex + 1, 
+			windowSlider.slice[0] + 1, 
+			windowSlider.eoLines, 
+			windowSlider.slice);
+}
+
+/**
+	This method slides the window to the next line
+	@windowSlider the window slider
+	returns: The updated window slider
+**/
+private WindowSlider slideWindowOverDuplication(WindowSlider windowSlider) {
+	return WindowSlider(
+			windowSlider.lineIndex + WINDOW_SIZE, 
+			windowSlider.slice[WINDOW_SIZE - 1] + 1,
+			windowSlider.eoLines, 
+			windowSlider.eoLines[windowSlider.lineIndex..windowSlider.lineIndex + WINDOW_SIZE]);
+}
+
+/**
+	This method checks whether the codeStringToCheck can be found in the code. This method\
+	is used to check whether a certain string is duplicated in the source code itself, without
+	taking other sources into consideration
+	@codeStringToCheck the string to look for
+	@code The source code in which codeStringToCheck will be checked for existence
+	returns: True if a duplication can be found in the source code itself, false if not the case 
+**/
 private bool foundDuplicationsInCurrentSource(str codeStringToCheck, str code) {
 	return size(findAll(code, codeStringToCheck)) >= 2;
 }
 
-private bool foundBefore(str code, set[str] foundSet) {
-	return code in foundSet;
+/**
+	This method gets the code string from the current slice
+	@windowSlider the window slider
+	@code the code of the source
+	returns: the code string that is converted from the slice
+**/
+private str getCodeString(WindowSlider windowSlider, str code) {
+	return substring(code, windowSlider.positionFirstChar, windowSlider.slice[WINDOW_SIZE - 1] + 1);
 }
 
+/**
+	Raises the number of duplicated line with the WINDOW_SIZE
+	returns: void 
+**/
 private void raiseDuplications() {
-	duplicationLines = duplicationLines + WINDOW_SIZE;
+	duplicationLines += WINDOW_SIZE;
 }
 
 /**
 	This method checks for duplication in sources other than the current source
+	@codeStringToCheck the string to check
+	@self: the source for which other sources should be checked for duplications. It should not
+			be checked with itself
+	returns: true if duplications can be found in other source files, false if not the case
 **/	
 private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
 
@@ -112,13 +178,15 @@ private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
 	
 }
 
+/**
+	This method checks for existence of codeStringToCheck in code string that is passed
+	@codeStringToCheck the string to check
+	@code the source code that is checked
+	returns: true if there is a duplication, false if not 
+**/
 private bool checkDuplicationInCurrentSource(str codeStringToCheck, str code) {
 
-	if (findFirst(code, codeStringToCheck) != -1) {
-		return true;	
-	};
-	
-	return false;
+	return findFirst(code, codeStringToCheck) != -1;
 	
 }
 
@@ -129,18 +197,20 @@ private bool checkDuplicationInCurrentSource(str codeStringToCheck, str code) {
    		the Eclipse project location
    @type 
    		the type of the file
+   returns: a map of location and its code
 **/
 public map[loc location, str code] getSourceFiles(loc location, str fileType) {
 	return (a: Utils::filterCode(readFile(a)) | a <- Utils::getSourceFilesInLocation(location, fileType));
 }
 
-public list[tuple[loc location, str code]] getSourceFiles2(loc location, str fileType) {
-	return [<a, removeImports(Utils::filterCode(readFile(a)))> | a <- Utils::getSourceFilesInLocation(location, fileType)];
-}
-
-private str removeImports(str input) {
+/**
+	This method removes the imports from the code
+	@input the input string
+	returns: the string without imports
+**/
+private str removeImports(str code) {
 	// import space! this one cannot be removed: imports(...
-    return visit(input) {
+    return visit(code) {
        case /(?m)^[\s]*?import[\s\S]*?$/ => "" 
     };
 }
@@ -154,9 +224,11 @@ private void testRemoveImports() {
 
 public void testGetMetrics() {
 	//getMetric(|project://Jabberpoint/|, "java", 10000);
+	//getMetric(|project://TestSoftwareQualityMetrics/|, "java", 10000);
 	//getMetric(|project://smallsql/|, "java", 10000);
-	num totalLOC = Volume::getTotalLOC(|project://smallsql/|, "java");
-	getMetric(|project://smallsql/|, "java", totalLOC);
+	//getMetric(|project://hsqldb/|, "java", 10000);
+	num totalLOC = Volume::getTotalLOC(|project://TestSoftwareQualityMetrics/|, "java");
+	getMetric(|project://TestSoftwareQualityMetrics/|, "java", totalLOC);
 }
 
 public void main() {
