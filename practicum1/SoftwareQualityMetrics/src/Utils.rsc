@@ -80,9 +80,24 @@ private str removeEmptyLines(str input) {
 	This method filters out unnecessary lines, i.e. lines that are not part of the source code
 	@str the input string
 	return: the filtered source code 
+	
+	TODO: not good yet, still newlines
+	
 */
 private str filterCode(str input) {
 	return removeEmptyLines(removeCommentsWhiteSpace(input));
+}
+
+/**
+	This method removes the imports from the code
+	@input the input string
+	returns: the string without imports
+**/
+private str removeImports(str code) {
+	// remove imports! this one cannot be removed: imports(...
+    return visit(code) {
+       case /[\s]*?import[\s]+?.*/ => "" 
+    };
 }
 
 /**

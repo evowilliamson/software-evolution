@@ -33,7 +33,6 @@ public void getMetric(loc location, str fileType, num totalLOC) {
 	
 	println(size(sourcesMap));
 	for (source <- sourcesMap) {
-		println(source);
 		detectDuplications(source, sourcesMap[source]); 
 	};
 
@@ -49,24 +48,23 @@ public void getMetric(loc location, str fileType, num totalLOC) {
 	This method checks the code for duplications in other sources. It also checks whether there
 	are duplications in the code itself
 	@location the location of the source 
-	@code the source  code
+	@code the source code
 	returns: void
 **/	
 private void detectDuplications(loc location, str code) {
 
+	// Create a window slider by finding all newlines in the code
 	windowSlider = WindowSlider(0, 0, findAll(code, "\n"), []);
-	println(split("", code));
 	while (canTakeNextSlice(windowSlider)) {
 		windowSlider = takeNextSlice(windowSlider);
 		str codeStringToCheck = getCodeString(windowSlider, code);
-		println(codeStringToCheck);
-		
 		if (foundDuplicationsInCurrentSource(codeStringToCheck, code)) {
 			raiseDuplications();
 			windowSlider = slideWindowOverDuplication(windowSlider);
 		}
 		else {
 			if (checkDuplicationsInOtherSources(codeStringToCheck, location)) {
+				println("checked: " + location.file);
 				raiseDuplications();
 				windowSlider = slideWindowOverDuplication(windowSlider);			
 			}
@@ -74,7 +72,6 @@ private void detectDuplications(loc location, str code) {
 				windowSlider = slideWindowToNextLine(windowSlider);
 			}
 		};
-
 	};
 	
 }
@@ -170,6 +167,9 @@ private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
 	// Check in other sources for duplications
 	for (source <- sourcesMap) {
 		if (source != self && checkDuplicationInCurrentSource(codeStringToCheck, sourcesMap[source])) {
+			println(self);
+			println(source);
+			println("duplication: " + source.file + ", code string: " + codeStringToCheck);
 			found = true;
 		};
 	};	
@@ -200,37 +200,42 @@ private bool checkDuplicationInCurrentSource(str codeStringToCheck, str code) {
    returns: a map of location and its code
 **/
 public map[loc location, str code] getSourceFiles(loc location, str fileType) {
-	return (a: Utils::filterCode(readFile(a)) | a <- Utils::getSourceFilesInLocation(location, fileType));
+	return (a: Utils::removeEmptyLines(filterCode(readFile(a))) | a <- Utils::getSourceFilesInLocation(location, fileType));
 }
+
 
 /**
-	This method removes the imports from the code
-	@input the input string
-	returns: the string without imports
+	This methods tests the removeImports method
 **/
-private str removeImports(str code) {
-	// import space! this one cannot be removed: imports(...
-    return visit(code) {
-       case /(?m)^[\s]*?import[\s\S]*?$/ => "" 
-    };
-}
-
 private void testRemoveImports() {
-	str s = "import bla \n import blabla\nfkjdfkdjf kfjf dkfd\nkfdjfkdf\nfjkdsjfkd;\n fff import fjdkfjkdf \n\n import import \njfkdjfkd";
+	str s = "import bla \n import blabla\nfkjdfkdjf kfjf dkfd\nkfdjfkdf\nfjkdsjfkd;\n fff import fjdkfjkdf \n\n import(bla) \njfkdjfkd";
 	println(s);
 	println("Converted: ");
 	println(removeImports(s));
 }
 
+private str filterCode(str input) {
+ 	return visit(input) {
+       case /\/\*.[\s\S]*?\*\/|\/\/.*|[ \t]+|[\s]*?import[\s]+?.*/ => ""    // Block comments and line comments
+    };
+}
+
+/**
+	This method tests the getMetrics method
+**/
 public void testGetMetrics() {
 	//getMetric(|project://Jabberpoint/|, "java", 10000);
 	//getMetric(|project://TestSoftwareQualityMetrics/|, "java", 10000);
 	//getMetric(|project://smallsql/|, "java", 10000);
 	//getMetric(|project://hsqldb/|, "java", 10000);
-	num totalLOC = Volume::getTotalLOC(|project://TestSoftwareQualityMetrics/|, "java");
-	getMetric(|project://TestSoftwareQualityMetrics/|, "java", totalLOC);
+	num totalLOC = Volume::getTotalLOC(|project://hsqldb/|, "java");
+	getMetric(|project://hsqldb/|, "java", totalLOC);
 }
 
+/**
+	Run tests
+**/
 public void main() {
 	testGetMetrics();
+	//testRemoveImports();
 }
