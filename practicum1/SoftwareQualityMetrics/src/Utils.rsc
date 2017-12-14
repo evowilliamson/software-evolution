@@ -19,24 +19,27 @@ import String;
 int MAXINT = 9999999;
 
 /**
-   This method retrieves the number of lines per file given an Eclipse project and stores it together with the 
-   location in a list
-   @location 
-   		the Eclipse project location
-   @type 
-   		the type of the file
-**/
-public list[tuple[loc location, int lOCs]] getLOCPerSourceFile(loc location, str fileType) {
-	return [<a, getNumberOfLinesInString(filterCode(readFile(a)))> | a <- getSourceFilesInLocation(location, fileType)];
-}
-
-/**
 	Determines the number of newline characters in the string
 	@theString: The string that needs to be searched for newline characters
 **/
 private int getNumberOfLinesInString(str theString) {
 	return size(findAll(theString, "\n"));
 } 
+
+/**
+   This method retrieves the number of lines per file given an Eclipse project and stores it together with the 
+   location in a list
+   @location 
+   		the Eclipse project location
+   @type 
+   		the type of the file
+   @removeImports
+   		indicates whether the LOC should include import statements or not 
+**/
+public list[tuple[loc location, int lOCs]] getLOCPerSourceFile(loc location, str fileType, bool removeImports) {
+	return [<a, getNumberOfLinesInString(removeEmptyLines(filterCode(readFile(a), removeImports)))> | 
+					a <- getSourceFilesInLocation(location, fileType)];
+}
 
 /**
    This method retrieves all source files for a given locaton. A source file is defined as
@@ -46,23 +49,9 @@ private int getNumberOfLinesInString(str theString) {
    		the type of the file
    return: a set of source files
 **/
-
 private set[loc] getSourceFilesInLocation(loc location, str fileType) {
 	Resource project = getProject(location);
 	return { a | /file(a) <- project, a.extension == fileType };
-}
-
-/**
-	This method filters out comments. It uses the visit statement
-	in order to examine the input string repeatedly for patterns
-	@str the input string
-	return: the source code that does not contain comments
-**/
-private str removeCommentsWhiteSpace(str input) {
-    return visit(input) {
-       case /\/\*.[\s\S]*?\*\/|\/\/.*|[ \t]+/ => ""    // Block comments and line comments
-    };
-    
 }
 
 /**
@@ -72,32 +61,56 @@ private str removeCommentsWhiteSpace(str input) {
 **/
 private str removeEmptyLines(str input) {
     return visit(input) {
-       case /(\r\n\r\n)+|(\n\n)+/ => "\n"    // Block comments and line comments
+       case /(\r\n)+|(\n)+/ => "\n"    // Block comments and line comments
     };
-}
-
-/*
-	This method filters out unnecessary lines, i.e. lines that are not part of the source code
-	@str the input string
-	return: the filtered source code 
-	
-	TODO: not good yet, still newlines
-	
-*/
-private str filterCode(str input) {
-	return removeEmptyLines(removeCommentsWhiteSpace(input));
 }
 
 /**
-	This method removes the imports from the code
-	@input the input string
-	returns: the string without imports
+	This method filters out comments (line and block), white space and imports.
+	White space is removed for two reason: When comparing code, leading and trailing spaces should be 
+	ignored. Clearing all white space in the code takes care of that. More, clearing all white space also
+	compacts the code, which makes the processing faster. It doesn't impact the duplication detection process
+	and neither the volume determination process. 
+	@input 
+		the input that should be filtered
+	@removeImports
+		In case duplication is run, the TLOC should be calculated without import statements in order to get
+		good %
 **/
-private str removeImports(str code) {
-	// remove imports! this one cannot be removed: imports(...
-    return visit(code) {
-       case /[\s]*?import[\s]+?.*/ => "" 
+private str filterCode(str input, bool removeImports) {
+    
+    if (removeImports) {
+    	return 	visit(input) {
+        	case /\/\*.[\s\S]*?\*\/|\/\/.*|[ \t]+|(?!import[\s]*\(.*)[\s]*?import[\s]+?.*/ => ""
+        }
+    }
+    else {
+    	return 	visit(input) {
+        	case /\/\*.[\s\S]*?\*\/|\/\/.*|[ \t]+/ => ""
+        };   
     };
+
+	return s;
+}
+
+/**
+	Import statements should be removed. But invocation 
+	to methods that end in "import" should not be removed
+**/
+private str removeImportsStatements(str input) {
+	return  visit(input) {
+       case /(?!import[\s]*\(.*)[\s]*?import[\s]+?.*/ => ""    
+    };
+ }
+
+/**
+	This methods tests the removeImports method
+**/
+private void testRemoveImportsStatements() {
+	str s = "import bla \n import blabla\nfkjdfkdjf kfjf dkfd\nkfdjfkdf\nfjkdsjfkd;\n fff import fjdkfjkdf \n\n import(bla) \njfkdjfkd";
+	println(s);
+	println("Converted: ");
+	println(removeImports(s));
 }
 
 /**
@@ -107,12 +120,13 @@ private void testFilterCode() {
 	s = "line1\nline2\n fdfdf\r\n\r\nfdfdf  /* block comment \n\n continued */ \n // fdklfkldfkld \n // fkldkflkd lfdf \nfsdfsdfdfd\n /* block comment */ jjjjj fdfdj jfkjdfkjdfd\n hhhh";
 	println(s);
 	println("Converted:");
-	println(filterCode(s));
+	println(filterCode(s, false));
 }
 
 /**
 	Calls the test methods
 **/
 public void main() {
-	testFilterCode();
+ 	testRemoveImportsStatements();
+ 	//testFilterCode();
 }

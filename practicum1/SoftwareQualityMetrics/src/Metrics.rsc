@@ -33,7 +33,7 @@ ThresholdRanks duplicationRanks = [
 public void main() {
 
 	reportMetrics(|project://smallsql/|);
-	reportMetrics(|project://hsqldb/|);
+	//reportMetrics(|project://hsqldb_small/|);
 	
 }
 
@@ -41,14 +41,12 @@ public void main() {
 	This method reports uoon the metrics for a certain system (project)
 **/
 private void reportMetrics(loc project) {
-	num totalLOC = Volume::getTotalLOC(project, "java");
+	num totalLOC = Volume::getTotalLOC(project, "java", false);
 	println("Metrics for system: " + project.authority);
 	println(
 		[] + 
-			Threshold::getMetric("Volume", totalLOC/1000, volumeRanks) + 
-			Threshold::getMetric("Duplication", Duplication::getDuplication(project, "java", totalLOC), duplicationRanks)
+			//Threshold::getMetric("Volume", totalLOC/1000, volumeRanks) +
+			Threshold::getMetric("Duplication", Duplication::getDuplication(project, "java"), duplicationRanks)
 	);
 }
 
-
-//ic num getMetric(loc location, str fileType, num totalLOC) {
