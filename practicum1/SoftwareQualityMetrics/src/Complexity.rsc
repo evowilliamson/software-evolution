@@ -17,15 +17,14 @@ import util::Resources;
 import util::Math;
 import util::Benchmark;
 
-import Utils;
-import Threshold;
-
 str METRIC_NAME = "Complexity";
 
 private str SIMPLE = "simple"; 
 private str MODERATE = "moderate";
 private str HIGH = "high";
 private str VERY_HIGH = "very high";
+
+alias ThresholdRanks = list[tuple[int threshold, str rank, int rankNum]];
 
 private ThresholdRanks thresholdCCUnit = [
 		<11, SIMPLE, 5>,
@@ -70,13 +69,13 @@ private ThresholdRanks thresholdCCTotal = [
 Get the complexity rating of the project
 Works for small projects (e.g. smallsql)
 **/
-public str getComplexityWithM3(loc project, str fileType, num totalProjectLOC) {
+public str getComplexityWithM3(loc project, str fileType) {
 	real locTotal = 0.0;
 	real locSimple = 0.0;
 	real locModerate = 0.0;
 	real locHigh = 0.0;
 	real locVeryHigh = 0.0;
-	int counter = 0;
+	int counter = 0;	
 
 	set[loc] files = Utils::getSourceFilesInLocation(project, fileType);
 	println("Amount of files in the project: <size(files)>");
@@ -130,15 +129,17 @@ public str getComplexityWithM3(loc project, str fileType, num totalProjectLOC) {
 		gc();			
 	}
 	
-	str rank = calculateRank(totalProjectLOC, locModerate, locHigh, locVeryHigh); 		
+	str rank = calculateRank(locTotal, locModerate, locHigh, locVeryHigh); 		
 				
 	return "Cyclomatic complexity: <rank>";
 }
 
 /**
 Get the complexity rating of the project
+
+Very slow!!!
 **/
-public str getComplexity(loc project, str fileType, num totalProjectLOC) {
+public str getComplexity(loc project, str fileType) {
 	real locTotal = 0.0;
 	real locSimple = 0.0;
 	real locModerate = 0.0;
@@ -196,9 +197,9 @@ public str getComplexity(loc project, str fileType, num totalProjectLOC) {
 		gc();		
 	}
 	
-	println("loc Total methods: <totalProjectLOC>, loc Moderate: <locModerate>, loc High: <locHigh>, loc Very High: <locVeryHigh>");	
+	println("loc Total methods: <locTotal>, loc Moderate: <locModerate>, loc High: <locHigh>, loc Very High: <locVeryHigh>");	
 	
-	str rank = calculateRank(totalProjectLOC, locModerate, locHigh, locVeryHigh); 		
+	str rank = calculateRank(locTotal, locModerate, locHigh, locVeryHigh); 		
 				
 	return "Cyclomatic complexity: <rank>";
 }
@@ -206,7 +207,7 @@ public str getComplexity(loc project, str fileType, num totalProjectLOC) {
 /**
 Get the complexity rating of the project
 **/
-public str getComplexityTest(loc project, str fileType, num totalProjectLOC) {
+public str getComplexityTest(loc project, str fileType) {
 	real locTotal = 0.0;
 	real locSimple = 0.0;
 	real locModerate = 0.0;
@@ -214,74 +215,56 @@ public str getComplexityTest(loc project, str fileType, num totalProjectLOC) {
 	real locVeryHigh = 0.0;
 	int counter = 0;
 	
-	set[loc] files = Utils::getSourceFilesInLocation(project, fileType);
-	println("Amount of files in the project: <size(files)>");
+	M3 m = createM3FromEclipseProject(project);
 	
-	for(file <- files){
-		counter += 1;
-		println("file <counter>: <file>");
+	//println("m3 <m>");
+	/*
+	list[loc] methods = [ y | <x,y> <- m@containment,
+	x.scheme=="java+class",		
+	y.scheme=="java+method" ||
+	y.scheme=="java+constructor" ];					
+				
+	//Calculate cc for every method
+	for(method <- methods){
+		Declaration d = getMethodASTEclipse(method, model = m);									
+								
+		int cc = 0;
+		Statement statement;
+		for(/Statement s := d) 
+		{
+			statement = s;										
+		}				
 		
-		Declaration ast = createAstFromFile(file, false);
-		println("ast =\> <ast>");
-		
-		visit(ast){
-			case \method() : println("method 1 gevonden");			
-			case \method(__) : println("method 1 gevonden");
-			case \method(__,__) : println("method 1 gevonden");
-			case \method(__,__,__) : println("method 1 gevonden");
-			case \method(__,__,__,__) : println("method 1 gevonden");
-			case \method(__,__,__,__,__) : println("method 2 gevonden");
-			case \if(_,_) : println("if gevonden");			
-		}
-		
+		if (statement?){
+			cc = calcCC(statement);
 			
-		/*
-		//Select all methods
-		list[loc] methods = [ y | <x,y> <- ast@method,
-			x.scheme=="java+class",		
-			y.scheme=="java+method" ||
-			y.scheme=="java+constructor" ];					
-				
-		//Calculate cc for every method
-		for(method <- methods){
-			Declaration d = getMethodASTEclipse(method, model = m);									
-									
-			int cc = 0;
-			Statement statement;
-			for(/Statement s := d) 
-			{
-				statement = s;										
-			}				
+			int locMethod = Utils::getLOCForSourceFile(d@src);
+			locTotal += locMethod;
+			str rank = getCCRank(cc);
 			
-			if (statement?){
-				cc = calcCC(statement);
-				
-				int locMethod = Utils::getLOCForSourceFile(d@src);
-				locTotal += locMethod;
-				str rank = getCCRank(cc);
-				
-				switch(rank){				
-					case MODERATE: locModerate += locMethod;
-					case HIGH: locHigh += locMethod;
-					case VERY_HIGH: locVeryHigh += locMethod;
-					default: locSimple += locMethod;
-				}
-				
-				println("Method: <method>, loc <locMethod>, cc: <cc>, rank: <rank>");
+			switch(rank){				
+				case MODERATE: locModerate += locMethod;
+				case HIGH: locHigh += locMethod;
+				case VERY_HIGH: locVeryHigh += locMethod;
+				default: locSimple += locMethod;
 			}
-			else{
-				println("Error in file: <method>");
-			}			
+			
+			counter += 1;
+			println("Method <counter>: <method>, loc <locMethod>, cc: <cc>, rank: <rank>");			
+		}
+		else{
+			println("Error in file: <method>");
+		}		
+		
+		if (counter % 100 == 0){
+			gc();
+			println("modulo gc");
 		}	
-				
-		gc();
-		*/		
-	}
+	}	
+	println("loc Total methods: <locTotal>, loc Moderate: <locModerate>, loc High: <locHigh>, loc Very High: <locVeryHigh>");	
 	
-	println("loc Total methods: <totalProjectLOC>, loc Moderate: <locModerate>, loc High: <locHigh>, loc Very High: <locVeryHigh>");	
-	
-	str rank = calculateRank(totalProjectLOC, locModerate, locHigh, locVeryHigh); 		
-				
+	str rank = calculateRank(locTotal, locModerate, locHigh, locVeryHigh); 		
+				*/
 	return "Cyclomatic complexity: <rank>";
 }
 
@@ -297,15 +280,15 @@ private str calculateRank(num totalProjectLOC, real locModerate, real locHigh, r
 	println("loc Total methods: <locTotal>, loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 			
 	//Calculate the rank for each risk level
-	int rankModerate = Threshold::getRankNum(moderateLocPerc, thresholdCCModerate);
-	int rankHigh = Threshold::getRankNum(highLocPerc, thresholdCCHigh);
-	int rankVeryHigh = Threshold::getRankNum(veryHighLocPerc, thresholdCCVeryHigh);
-	println("rank moderate: <Threshold::getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <Threshold::getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <Threshold::getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)");
+	int rankModerate = getRankNum(moderateLocPerc, thresholdCCModerate);
+	int rankHigh = getRankNum(highLocPerc, thresholdCCHigh);
+	int rankVeryHigh = getRankNum(veryHighLocPerc, thresholdCCVeryHigh);
+	println("rank moderate: <getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)");
 	
 	//Calculate the aggregrated risk level
 	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);
 	println("min value: <maxValue>");
-	str rank = Threshold::getRank(maxValue, thresholdCCTotal);	
+	str rank = getRank(maxValue, thresholdCCTotal);	
 	
 	return rank;
 }
@@ -318,7 +301,7 @@ private str calculateRank(num totalProjectLOC, real locModerate, real locHigh, r
  >50: very high
 **/
 private str getCCRank(int cc){		
-	str rank = Threshold::getRank(cc, thresholdCCUnit);
+	str rank = getRank(cc, thresholdCCUnit);
 	return rank;
 }
 
@@ -343,4 +326,50 @@ private int calcCC(Statement impl) {
         case infix(_,"||",_) : result += 1;
     }
     return result;
+}
+
+/**
+	This methods retrieves the rank that is associated with the value 
+	@theValue 
+		the value that is being looked up in the ThresholdRanks relation
+	@thresholdRanks
+		the ThresholdRanks relation that contains the mapping from values to ranks
+**/
+private str getRank(num threshold, ThresholdRanks thresholdRanks) {
+	for (a <- thresholdRanks) {
+		if (threshold <= a.threshold) {
+			return a.rank;
+		}
+	};
+}
+
+private int getRankNum(num threshold, ThresholdRanks thresholdRanks) {
+	for (a <- thresholdRanks) {
+		if (threshold <= a.threshold) {
+			return a.rankNum;
+		}
+	};
+}
+
+/**
+This method retrieves the number of lines of the given file
+   @location 
+   		the file location
+**/
+private int getLOCForSourceFile(loc file){
+	s = readFile(file);
+	//println("code: <s>");
+	return getNumberOfLinesInString(filterCode(s));
+}
+
+public void main() {
+	//loc project = |project://smallsql/|;
+	//loc project = |project://hsqldb/|;
+	loc project = |project://JavaTestProject/|; 
+	str fileType = "java";
+	
+	//println("cc 1: <Complexity::getComplexityTest(project, fileType)>");
+	println("cc 2: <Complexity::getComplexityWithM3(project, fileType)>");
+	//println("cc 2: <Complexity::getComplexity(project, fileType)>");		
+	
 }
