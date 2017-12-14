@@ -12,36 +12,30 @@ data WindowSlider = WindowSlider(int lineIndex, int positionFirstChar, list[int]
 
 private int WINDOW_SIZE = 6;
 private map[loc location, str code] sourcesMap = ();
-private int duplicationLines = 0;
+private int duplicatedLines = 0;
 private WindowSlider windowSlider = WindowSlider(0, 0, [], []);
 
+alias cache = map[str, bool];
+private cache duplicationCache = ();
+
 /**
-	This method calculates the 
+	This method calculates the percentage of duplicated lines in the system
+	@loc the location
+	@fileType the type of the file that should be considered
+	@totalLOC the total number of lines of code in the system
+	returns: % of lines that are duplicated
 **/
-public void getMetric(loc location, str fileType, num totalLOC) {
-	ThresholdRanks thresholdRanks = [
-		<66, "++">,
-		<246, "+">,
-		<665, "o">,
-		<1310, "-">,
-		<Utils::MAXINT, "--">
-	];
-	
+public num getDuplication(loc location, str fileType, num totalLOC) {
 	
 	// Get all sources and store it together with the location in a list
 	sourcesMap = getSourceFiles(location, fileType);
 	
-	println(size(sourcesMap));
 	for (source <- sourcesMap) {
 		detectDuplications(source, sourcesMap[source]); 
 	};
+	
+	return (duplicatedLines / totalLOC) * 100;
 
-	println("totalLoc: ");
-	println(totalLOC);
-	println("final duplication: ");
-	println(duplicationLines);
-	println((duplicationLines / totalLOC) * 100);
-		
 }
 
 /**
@@ -64,7 +58,6 @@ private void detectDuplications(loc location, str code) {
 		}
 		else {
 			if (checkDuplicationsInOtherSources(codeStringToCheck, location)) {
-				println("checked: " + location.file);
 				raiseDuplications();
 				windowSlider = slideWindowOverDuplication(windowSlider);			
 			}
@@ -151,7 +144,7 @@ private str getCodeString(WindowSlider windowSlider, str code) {
 	returns: void 
 **/
 private void raiseDuplications() {
-	duplicationLines += WINDOW_SIZE;
+	duplicatedLines += WINDOW_SIZE;
 }
 
 /**
@@ -163,19 +156,29 @@ private void raiseDuplications() {
 **/	
 private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
 
-	bool found = false;
+	if (foundInCache(codeStringToCheck)) {
+		return true;
+	};
+
 	// Check in other sources for duplications
 	for (source <- sourcesMap) {
 		if (source != self && checkDuplicationInCurrentSource(codeStringToCheck, sourcesMap[source])) {
-			println(self);
-			println(source);
-			println("duplication: " + source.file + ", code string: " + codeStringToCheck);
-			found = true;
+			duplicationCache = duplicationCache + (codeStringToCheck : true);
+			return true;
 		};
 	};	
 
-	return found;
-	
+	return false;
+
+}
+
+/**
+	This method checks if the code string can be found in the case
+	@codeStringToCheck the string that should be checked for presence in the cache
+	returns: true if found in the cache, otherwise false
+**/
+private bool foundInCache(str codeStringToCheck) {
+	try return duplicationCache[codeStringToCheck]; catch: return false;
 }
 
 /**
@@ -228,8 +231,8 @@ public void testGetMetrics() {
 	//getMetric(|project://TestSoftwareQualityMetrics/|, "java", 10000);
 	//getMetric(|project://smallsql/|, "java", 10000);
 	//getMetric(|project://hsqldb/|, "java", 10000);
-	num totalLOC = Volume::getTotalLOC(|project://hsqldb/|, "java");
-	getMetric(|project://hsqldb/|, "java", totalLOC);
+	num totalLOC = Volume::getTotalLOC(|project://smallsql/|, "java");
+	getMetric(|project://smallsql/|, "java", totalLOC);
 }
 
 /**
