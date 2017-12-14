@@ -7,6 +7,7 @@ import String;
 import List;
 import Map;
 import Volume;
+import DateTime;
 
 data WindowSlider = WindowSlider(int lineIndex, int positionFirstChar, list[int] eoLines, list[int] slice);
 
@@ -32,8 +33,19 @@ public num getDuplication(loc location, str fileType) {
 	
 	// Get all sources and store it together with the location in a list
 	sourcesMap = getSourceFiles(location, fileType);
+	int lines = 0;
+	int i = 0;
 	for (source <- sourcesMap) {
-		println("ongoing: " + source.file);
+		lines += Utils::getNumberOfLinesInString(sourcesMap[source]);
+		i += 1;
+		if (i % 10 == 0) {
+			println("Lines: ");
+			println(lines);
+			println("Cache size: ");
+			println(size(duplicationCache));
+			println("Duplications found: ");
+			println(duplicatedLines);
+		};
 		detectDuplications(source, sourcesMap[source]); 
 	};
 	
@@ -108,7 +120,8 @@ private WindowSlider slideWindowToNextLine(WindowSlider windowSlider) {
 }
 
 /**
-	This method slides the window to the next line
+	This method slides the window to the next block of WINDOW_SIZE lines, it skips over
+	the current lines that have been detected as duplicated
 	@windowSlider the window slider
 	returns: The updated window slider
 **/
@@ -148,7 +161,6 @@ private str getCodeString(WindowSlider windowSlider, str code) {
 **/
 private void raiseDuplications() {
 	duplicatedLines += WINDOW_SIZE;
-	println(duplicatedLines);
 }
 
 /**
@@ -161,15 +173,15 @@ private void raiseDuplications() {
 private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
 
 	if (foundInCache(codeStringToCheck)) {
+		println("Found in cache");
 		return true;
 	};
 
 	// Check in other sources for duplications
 	for (source <- sourcesMap) {
 		if (source != self && checkDuplicationInCurrentSource(codeStringToCheck, sourcesMap[source])) {
-			println(codeStringToCheck);
-			println(source);
 			duplicationCache = duplicationCache + (codeStringToCheck : true);
+			println("Duplication found");
 			return true;
 		};
 	};	
@@ -222,7 +234,9 @@ public void testGetMetrics() {
 	//getMetric(|project://smallsql/|, "java", 10000);
 	//getMetric(|project://hsqldb_small/|, "java", 10000);
 	//getMetric(|project://hsqldb/|, "java", 10000);
-	println(getDuplication(|project://smallsql/|, "java"));
+	println(now());
+	println(getDuplication(|project://hsqldb/|, "java"));
+	println(now());
 }
 
 /**
