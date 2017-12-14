@@ -33,6 +33,7 @@ ThresholdRanks duplicationRanks = [
 public void main() {
 
 	reportMetrics(|project://smallsql/|);
+	reportMetrics(|project://hsqldb/|);
 	
 }
 
