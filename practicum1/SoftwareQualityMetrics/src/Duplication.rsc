@@ -7,6 +7,7 @@ import String;
 import List;
 import Map;
 import Volume;
+import DateTime;
 
 data WindowSlider = WindowSlider(int lineIndex, int positionFirstChar, list[int] eoLines, list[int] slice);
 
@@ -25,12 +26,26 @@ private cache duplicationCache = ();
 	@totalLOC the total number of lines of code in the system
 	returns: % of lines that are duplicated
 **/
-public num getDuplication(loc location, str fileType, num totalLOC) {
+public num getDuplication(loc location, str fileType) {
+	
+	num totalLOC = Volume::getTotalLOC(location, fileType, true);
+	println(totalLOC);
 	
 	// Get all sources and store it together with the location in a list
 	sourcesMap = getSourceFiles(location, fileType);
-	
+	int lines = 0;
+	int i = 0;
 	for (source <- sourcesMap) {
+		lines += Utils::getNumberOfLinesInString(sourcesMap[source]);
+		i += 1;
+		if (i % 10 == 0) {
+			println("Lines: ");
+			println(lines);
+			println("Cache size: ");
+			println(size(duplicationCache));
+			println("Duplications found: ");
+			println(duplicatedLines);
+		};
 		detectDuplications(source, sourcesMap[source]); 
 	};
 	
@@ -105,7 +120,8 @@ private WindowSlider slideWindowToNextLine(WindowSlider windowSlider) {
 }
 
 /**
-	This method slides the window to the next line
+	This method slides the window to the next block of WINDOW_SIZE lines, it skips over
+	the current lines that have been detected as duplicated
 	@windowSlider the window slider
 	returns: The updated window slider
 **/
@@ -157,6 +173,7 @@ private void raiseDuplications() {
 private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
 
 	if (foundInCache(codeStringToCheck)) {
+		println("Found in cache");
 		return true;
 	};
 
@@ -164,6 +181,7 @@ private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
 	for (source <- sourcesMap) {
 		if (source != self && checkDuplicationInCurrentSource(codeStringToCheck, sourcesMap[source])) {
 			duplicationCache = duplicationCache + (codeStringToCheck : true);
+			println("Duplication found");
 			return true;
 		};
 	};	
@@ -193,6 +211,7 @@ private bool checkDuplicationInCurrentSource(str codeStringToCheck, str code) {
 	
 }
 
+
 /**
    This method retrieves the code of all source files given an Eclipse project and stores it together with the 
    location in a list. It filters the source code and it also removes the import statements
@@ -203,24 +222,7 @@ private bool checkDuplicationInCurrentSource(str codeStringToCheck, str code) {
    returns: a map of location and its code
 **/
 public map[loc location, str code] getSourceFiles(loc location, str fileType) {
-	return (a: Utils::removeEmptyLines(filterCode(readFile(a))) | a <- Utils::getSourceFilesInLocation(location, fileType));
-}
-
-
-/**
-	This methods tests the removeImports method
-**/
-private void testRemoveImports() {
-	str s = "import bla \n import blabla\nfkjdfkdjf kfjf dkfd\nkfdjfkdf\nfjkdsjfkd;\n fff import fjdkfjkdf \n\n import(bla) \njfkdjfkd";
-	println(s);
-	println("Converted: ");
-	println(removeImports(s));
-}
-
-private str filterCode(str input) {
- 	return visit(input) {
-       case /\/\*.[\s\S]*?\*\/|\/\/.*|[ \t]+|[\s]*?import[\s]+?.*/ => ""    // Block comments and line comments
-    };
+	return (a: Utils::removeEmptyLines(Utils::filterCode(readFile(a), true)) | a <- Utils::getSourceFilesInLocation(location, fileType));
 }
 
 /**
@@ -230,9 +232,11 @@ public void testGetMetrics() {
 	//getMetric(|project://Jabberpoint/|, "java", 10000);
 	//getMetric(|project://TestSoftwareQualityMetrics/|, "java", 10000);
 	//getMetric(|project://smallsql/|, "java", 10000);
+	//getMetric(|project://hsqldb_small/|, "java", 10000);
 	//getMetric(|project://hsqldb/|, "java", 10000);
-	num totalLOC = Volume::getTotalLOC(|project://smallsql/|, "java");
-	getMetric(|project://smallsql/|, "java", totalLOC);
+	println(now());
+	println(getDuplication(|project://hsqldb/|, "java"));
+	println(now());
 }
 
 /**
@@ -240,5 +244,4 @@ public void testGetMetrics() {
 **/
 public void main() {
 	testGetMetrics();
-	//testRemoveImports();
 }

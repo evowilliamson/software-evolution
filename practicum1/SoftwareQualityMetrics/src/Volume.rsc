@@ -8,21 +8,9 @@ module Volume
 import Threshold;
 import Utils;
 import util::Math;
+import IO;
+import util::Resources;
 
-/**
-
-TODO: // in een string!!!
-
-
-**/
-
-/**
-	This methods prints the rank of the volume of the system 
-	@location 
-   		the Eclipse project location
-	@type 
-   		the type of the file
-**/
 
 /**
 	Gets the total number of lines in the Eclipse project that coincide with the filetype
@@ -30,11 +18,20 @@ TODO: // in een string!!!
    		the Eclipse project location
 	@type 
    		the type of the file
+   @removeImports
+   		indicates whether the TLOC should include import statements or not 
 **/
-public num getTotalLOC(loc location, str fileType) {
+public num getTotalLOC(loc location, str fileType, bool removeImports) {
 	int totalLines = 0;
-	for (a <- getLOCPerSourceFile(location, fileType))
+	for (a <- Utils::getLOCPerSourceFile(location, fileType, removeImports)) {
 		totalLines += a.lOCs;
-		
+	}
 	return totalLines;
+}
+
+/**
+	Calls the test methods
+**/
+public void main() {
+	testFilterCode();
 }
