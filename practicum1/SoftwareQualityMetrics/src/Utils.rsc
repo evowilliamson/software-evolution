@@ -21,6 +21,7 @@ int MAXINT = 9999999;
 /**
 	Determines the number of newline characters in the string
 	@theString: The string that needs to be searched for newline characters
+	returns: the number of lines in the string
 **/
 private int getNumberOfLinesInString(str theString) {
 	return size(findAll(theString, "\n"));
@@ -53,7 +54,7 @@ public list[tuple[loc location, int lOCs]] getLOCPerSourceFile(loc location, str
 }
 
 /**
-   This method retrieves all source files for a given locaton. A source file is defined as
+   This method retrieves all source files for a given location. 
    @location 
    		the Eclipse project location
    @type 
@@ -68,7 +69,7 @@ private set[loc] getSourceFilesInLocation(loc location, str fileType) {
 /**
 	This method removes empty lines from the source code
 	@str the input string
-	return: the source code that does not contain empty lines
+	returns: the source code that does not contain empty lines
 **/
 private str removeEmptyLines(str input) {
     return visit(input) {
@@ -78,7 +79,7 @@ private str removeEmptyLines(str input) {
 
 /**
 	This method filters out comments (line and block), white space and imports.
-	White space is removed for two reason: When comparing code, leading and trailing spaces should be 
+	White space is removed for two reasons: When comparing code, leading and trailing spaces should be 
 	ignored. Clearing all white space in the code takes care of that. More, clearing all white space also
 	compacts the code, which makes the processing faster. It doesn't impact the duplication detection process
 	and neither the volume determination process. 
@@ -87,6 +88,7 @@ private str removeEmptyLines(str input) {
 	@removeImports
 		In case duplication is run, the TLOC should be calculated without import statements in order to get
 		good %
+	returns: the filtered code
 **/
 private str filterCode(str input, bool removeImports) {
     

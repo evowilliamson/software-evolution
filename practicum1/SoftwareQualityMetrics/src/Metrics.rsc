@@ -41,7 +41,8 @@ ThresholdRanks unitTestingRanks = [
 **/
 public void main() {
 
-	reportMetrics(|project://smallsql/|);
+//	reportMetrics(|project://UPO/|);
+	reportMetrics(|project://core/|);
 	//reportMetrics(|project://hsqldb_small/|);
 	
 }

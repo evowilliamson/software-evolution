@@ -1,4 +1,29 @@
 module Duplication
+/**
+	@author Ivo Willemsen
+	Duplication detection algorithm:
+	
+	Duplication detection algorithm is based on the comparison of strings as described by [Heitlager et al 2007].
+	For every source file, a sliding window of six lines of code is used. The contents of this window (a string) is compared with:
+	1. Source code in the same file that is being processed. The contents of the sliding window is skipped and comparison is started
+	after the first line of the sliding window until the end of the file. The method of comparison is done by doing a findAll. If two or
+	more occurences are found, a duplication exists in the current source file (we must ignore the first occurence, as this is the
+	string to be checked itself).
+	2. Source code in other files. A simple findFirst is done to see if there exists a match in the other source files.
+	
+	In case a duplication is found, the duplicated source string is stored in a duplication cache. In the steps described above,
+	before consulting the source, the cache is checked first. If found in cache, the duplication count is increased. If not found
+	the source code is checked in either two ways described above.
+	
+	Sources are compared by simply comparing strings. 6 lines of code must be compared per check. The sliding window is determined
+	by first determining the starting new line and then looking for the ending new line (6 newlines further in the source). This sliding 
+	window is moved through the source line by line. In case a duplication is found, the sliding window must be advanced to the line 
+	after the last line in the sliding window.
+	
+	Another option could have been used, i.e. creating a sliding window based on a list of strings, where the list is created based on 
+	splitting the source code by using the new line as a separator. But, this would incur a performance penalty (this was tested) as 
+	managing lists is more expensive performance wise than managing simple strings.
+**/
 
 import IO;
 import Utils;
@@ -27,30 +52,15 @@ private cache duplicationCache = ();
 	returns: % of lines that are duplicated
 **/
 public num getDuplication(loc location, str fileType) {
-	
 	num totalLOC = Volume::getTotalLOC(location, fileType, true);
-	println(totalLOC);
 	
 	// Get all sources and store it together with the location in a list
 	sourcesMap = getSourceFiles(location, fileType);
-	int lines = 0;
-	int i = 0;
 	for (source <- sourcesMap) {
-		lines += Utils::getNumberOfLinesInString(sourcesMap[source]);
-		i += 1;
-		if (i % 10 == 0) {
-			println("Lines: ");
-			println(lines);
-			println("Cache size: ");
-			println(size(duplicationCache));
-			println("Duplications found: ");
-			println(duplicatedLines);
-		};
 		detectDuplications(source, sourcesMap[source]); 
 	};
 	
 	return (duplicatedLines / totalLOC) * 100;
-
 }
 
 /**
@@ -61,17 +71,18 @@ public num getDuplication(loc location, str fileType) {
 	returns: void
 **/	
 private void detectDuplications(loc location, str code) {
-
 	// Create a window slider by finding all newlines in the code
 	windowSlider = WindowSlider(0, 0, findAll(code, "\n"), []);
 	while (canTakeNextSlice(windowSlider)) {
 		windowSlider = takeNextSlice(windowSlider);
 		str codeStringToCheck = getCodeString(windowSlider, code);
-		if (foundDuplicationsInCurrentSource(codeStringToCheck, code)) {
+		// First check for duplications in the current code
+		if (checkDuplicationsInCurrentSource(codeStringToCheck, code)) {
 			raiseDuplications();
 			windowSlider = slideWindowOverDuplication(windowSlider);
 		}
 		else {
+			// If a duplication is not found in the current code, check other sources for duplications
 			if (checkDuplicationsInOtherSources(codeStringToCheck, location)) {
 				raiseDuplications();
 				windowSlider = slideWindowOverDuplication(windowSlider);			
@@ -81,7 +92,6 @@ private void detectDuplications(loc location, str code) {
 			}
 		};
 	};
-	
 }
 
 /**
@@ -94,7 +104,7 @@ private bool canTakeNextSlice(WindowSlider windowSlider) {
 }
 
 /**
-	This method takes the next slice
+	This method takes the next slice of source code lines
 	@windowSlider the current windowSlider
 	returns: updated windowSlider with new slice 
 **/
@@ -107,7 +117,9 @@ private WindowSlider takeNextSlice(WindowSlider windowSlider) {
 }
 
 /**
-	This method slides the window to the next line
+	This method slides the window to the next line. This method is used if the previously compared string
+	does not contain a duplication. In that case, the first line of the window slider must be dropped and the next line 
+	that comes after the window slider must be added to the window slider 
 	@windowSlider the window slider
 	returns: The updated window slider
 **/
@@ -141,12 +153,12 @@ private WindowSlider slideWindowOverDuplication(WindowSlider windowSlider) {
 	@code The source code in which codeStringToCheck will be checked for existence
 	returns: True if a duplication can be found in the source code itself, false if not the case 
 **/
-private bool foundDuplicationsInCurrentSource(str codeStringToCheck, str code) {
+private bool checkDuplicationsInCurrentSource(str codeStringToCheck, str code) {
 	return size(findAll(code, codeStringToCheck)) >= 2;
 }
 
 /**
-	This method gets the code string from the current slice
+	This method gets the code string from the source code using the window slider
 	@windowSlider the window slider
 	@code the code of the source
 	returns: the code string that is converted from the slice
@@ -171,23 +183,19 @@ private void raiseDuplications() {
 	returns: true if duplications can be found in other source files, false if not the case
 **/	
 private bool checkDuplicationsInOtherSources(str codeStringToCheck, loc self) {
-
 	if (foundInCache(codeStringToCheck)) {
-		println("Found in cache");
 		return true;
 	};
 
 	// Check in other sources for duplications
 	for (source <- sourcesMap) {
-		if (source != self && checkDuplicationInCurrentSource(codeStringToCheck, sourcesMap[source])) {
+		if (source != self && checkDuplicationInSource(codeStringToCheck, sourcesMap[source])) {
 			duplicationCache = duplicationCache + (codeStringToCheck : true);
-			println("Duplication found");
 			return true;
 		};
 	};	
 
 	return false;
-
 }
 
 /**
@@ -205,10 +213,8 @@ private bool foundInCache(str codeStringToCheck) {
 	@code the source code that is checked
 	returns: true if there is a duplication, false if not 
 **/
-private bool checkDuplicationInCurrentSource(str codeStringToCheck, str code) {
-
+private bool checkDuplicationInSource(str codeStringToCheck, str code) {
 	return findFirst(code, codeStringToCheck) != -1;
-	
 }
 
 
@@ -222,7 +228,8 @@ private bool checkDuplicationInCurrentSource(str codeStringToCheck, str code) {
    returns: a map of location and its code
 **/
 public map[loc location, str code] getSourceFiles(loc location, str fileType) {
-	return (a: Utils::removeEmptyLines(Utils::filterCode(readFile(a), true)) | a <- Utils::getSourceFilesInLocation(location, fileType));
+	return (location: Utils::removeEmptyLines(Utils::filterCode(readFile(a), true)) | 
+					location <- Utils::getSourceFilesInLocation(location, fileType));
 }
 
 /**
@@ -234,9 +241,6 @@ public void testGetMetrics() {
 	//getMetric(|project://smallsql/|, "java", 10000);
 	//getMetric(|project://hsqldb_small/|, "java", 10000);
 	//getMetric(|project://hsqldb/|, "java", 10000);
-	println(now());
-	println(getDuplication(|project://hsqldb/|, "java"));
-	println(now());
 }
 
 /**
