@@ -45,7 +45,7 @@ private void reportMetrics(loc project) {
 	println("Metrics for system: " + project.authority);
 	println(
 		[] + 
-			//Threshold::getMetric("Volume", totalLOC/1000, volumeRanks) +
+			Threshold::getMetric("Volume", totalLOC/1000, volumeRanks) +
 			Threshold::getMetric("Duplication", Duplication::getDuplication(project, "java"), duplicationRanks)
 	);
 }
