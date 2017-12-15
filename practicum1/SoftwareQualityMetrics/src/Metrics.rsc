@@ -7,6 +7,7 @@ module Metrics
 
 import Volume;
 import Duplication;
+import UnitTesting;
 import IO;
 import Utils;
 import Threshold;
@@ -25,6 +26,14 @@ ThresholdRanks duplicationRanks = [
 	<10, "o">,
 	<20, "-">,
 	<Utils::MAXINT, "--">
+];
+
+ThresholdRanks unitTestingRanks = [
+	<20, "--">,
+	<60, "-">,
+	<80, "o">,
+	<95, "+">,
+	<Utils::MAXINT, "++">
 ];
 
 /**
@@ -46,7 +55,8 @@ private void reportMetrics(loc project) {
 	println(
 		[] + 
 			Threshold::getMetric("Volume", totalLOC/1000, volumeRanks) +
-			Threshold::getMetric("Duplication", Duplication::getDuplication(project, "java"), duplicationRanks)
+			Threshold::getMetric("Duplication", Duplication::getDuplication(project, "java"), duplicationRanks) + 
+			Threshold::getMetric("Unit Testing", UnitTesting::getUnitTesting(project, "java", 10000), unitTestingRanks)
 	);
 }
 
