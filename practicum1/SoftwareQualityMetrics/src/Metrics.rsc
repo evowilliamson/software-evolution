@@ -23,10 +23,10 @@ import lang::csv::IO;
 **/
 public void main() {
 
-	reportMetrics(|project://smallsql/|);
+	//reportMetrics(|project://smallsql/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);
-	//reportMetrics(|project://hsqldb_small/|);	
+	reportMetrics(|project://hsqldb_small/|);	
 }
 
 /**
@@ -35,6 +35,9 @@ public void main() {
 private void reportMetrics(loc project) {
 	num totalLOC = Volume::getTotalLOC(project, "java", false);
 	int unitTesting = UnitTesting::getUnitTesting(project, "java", 10000);
+
+	DuplicationAggregate duplicationMetricAggregate = Duplication::getDuplication(project, "java");
+	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, "java");
 	
 	println("Metrics for system: " + project.authority);
 	println(Threshold::getMetric("Volume", totalLOC/1000, Volume::volumeRanks));
@@ -44,8 +47,6 @@ private void reportMetrics(loc project) {
 	println(Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, Complexity::thresholdTotal)); 
 	println(Threshold::getMetric("Unit size", complexityAggregate.unitSize, Complexity::thresholdTotal));
 
-	DuplicationAggregate duplicationMetricAggregate = Duplication::getDuplication(project, "java");
-	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, "java");
 	reportAdditionalInformation(duplicationMetricAggregate, complexityAggregate);
 	
 }
