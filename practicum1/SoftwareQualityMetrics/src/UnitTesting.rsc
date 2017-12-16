@@ -19,6 +19,16 @@ import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 import IO;
 import Set;
+import Threshold;
+import Utils;
+
+public ThresholdRanks unitTestingRanks = [
+	<20, "--">,
+	<60, "-">,
+	<80, "o">,
+	<95, "+">,
+	<Utils::MAXINT, "++">
+];
 
 public int getUnitTesting(loc project, str fileType, int totalCC) {
 	return (getNumberOfAssertStatements(project)/totalCC)*100;

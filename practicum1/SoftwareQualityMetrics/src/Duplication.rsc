@@ -35,6 +35,14 @@ import Volume;
 import DateTime;
 import Types;
 
+public ThresholdRanks duplicationRanks = [
+	<3, "++">,
+	<5, "+">,
+	<10, "o">,
+	<20, "-">,
+	<Utils::MAXINT, "--">
+];
+
 data WindowSlider = WindowSlider(int lineIndex, int positionFirstChar, list[int] eoLines, list[int] slice);
 
 private int WINDOW_SIZE = 6;

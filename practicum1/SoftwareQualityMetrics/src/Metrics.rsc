@@ -17,36 +17,12 @@ import Map;
 import Set;
 import Complexity;
 
-ThresholdRanks volumeRanks = [
-	<66, "++">,
-	<246, "+">,
-	<665, "o">,
-	<1310, "-">,
-	<Utils::MAXINT, "--">
-];
-
-ThresholdRanks duplicationRanks = [
-	<3, "++">,
-	<5, "+">,
-	<10, "o">,
-	<20, "-">,
-	<Utils::MAXINT, "--">
-];
-
-ThresholdRanks unitTestingRanks = [
-	<20, "--">,
-	<60, "-">,
-	<80, "o">,
-	<95, "+">,
-	<Utils::MAXINT, "++">
-];
-
 /**
 	Entrance to metrics system
 **/
 public void main() {
 
-	reportMetrics(|project://smallsql/|);
+	reportMetrics(|project://hsqldb_small/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);
 	//reportMetrics(|project://hsqldb_small/|);	
@@ -57,22 +33,23 @@ public void main() {
 **/
 private void reportMetrics(loc project) {
 	num totalLOC = Volume::getTotalLOC(project, "java", false);
-	ccUnitSize = Complexity::getCyclomaticComplexityAndUnitSize(project, "java");
-	MetricAggregate duplicationMetricAggregate = Duplication::getDuplication(project, "java");
+	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, "java");
+	DuplicationAggregate duplicationMetricAggregate = Duplication::getDuplication(project, "java");
 	int unitTesting = UnitTesting::getUnitTesting(project, "java", 10000);
 	
 	println("Metrics for system: " + project.authority);
-	println(Threshold::getMetric("Volume", totalLOC/1000, volumeRanks));
-	println(Threshold::getMetric("Duplication", (duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, duplicationRanks)); 
-	println(Threshold::getMetric("Unit Testing", unitTesting, unitTestingRanks));
-	println(Threshold::getMetric("Cyclomatic complexity", ccUnitSize[0], Complexity::thresholdTotal)); 
-	println(Threshold::getMetric("Unit size", ccUnitSize[1], Complexity::thresholdTotal));
+	println(Threshold::getMetric("Volume", totalLOC/1000, Volume::volumeRanks));
+	println(Threshold::getMetric("Duplication", 
+		(duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, Duplication::duplicationRanks)); 
+	println(Threshold::getMetric("Unit Testing", unitTesting, UnitTesting::unitTestingRanks));
+	println(Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, Complexity::thresholdTotal)); 
+	println(Threshold::getMetric("Unit size", complexityAggregate.unitSize, Complexity::thresholdTotal));
 	
 	reportAdditionalInformation(duplicationMetricAggregate);
 	
 }
 
-private void reportAdditionalInformation(MetricAggregate duplicationMetricAggregate) {
+private void reportAdditionalInformation(DuplicationAggregate duplicationMetricAggregate) {
 	int histogramSize = 50;
 	map[int histogramX, tuple[int weight, int duplicated] metric] duplicationCountMap = ();
 	map[int histogramX, int number] weightCountMap = ();

@@ -11,6 +11,13 @@ import util::Math;
 import IO;
 import util::Resources;
 
+public ThresholdRanks volumeRanks = [
+	<66, "++">,
+	<246, "+">,
+	<665, "o">,
+	<1310, "-">,
+	<Utils::MAXINT, "--">
+];
 
 /**
 	Gets the total number of lines in the Eclipse project that coincide with the filetype

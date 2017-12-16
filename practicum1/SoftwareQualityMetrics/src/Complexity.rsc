@@ -214,7 +214,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 	}
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 
-	num ccRankAggregrated = calculateCCRank(locTotal, locCCModerate, locCCHigh, locCCVeryHigh);
+	num ccRankAggregrated = calculateCCRank(locTotal, locCCSimple, locCCModerate, locCCHigh, locCCVeryHigh);
 	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locUnitSizeSimple, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
 				
 	return ComplexityAggregate(totalCC, ccRankAggregrated, unitSizeRankAggregrated);	
@@ -234,13 +234,14 @@ public str getUnitSizeMessage(num unitSizeRank){
 Calculate the ccyclomatic complexity rank number. 
 Remark: Use the threshold thresholdCCTotal to get the cc text representation 
 **/
-private num calculateCCRank(num totalProjectLOC, real locModerate, real locHigh, real locVeryHigh){
+private num calculateCCRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh){
 	//Calculate the percentages of LOC per risk level
 	locTotal = toReal(totalProjectLOC);
+	real simpleLocPerc = (locSimple/locTotal) * 100;
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	println("CC loc Total methods: <locTotal>, loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+	println("CC loc Total methods: <locTotal>, loc Simple: (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 			
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdCCModerate);
