@@ -6,6 +6,9 @@ module Threshold
 **/
 
 alias ThresholdRanks = list[tuple[int threshold, str rank]];
+alias ThresholdRanksEx = list[tuple[int threshold, str rank, int rankNum]];
+alias ThresholdRanksReal = list[tuple[real threshold, str rank, int rankNum]];
+
 
 /**
 	This methods collects the metric and the associated rank
@@ -24,11 +27,64 @@ public tuple[str, num, str] getMetric(str metricName, num threshold, ThresholdRa
 	@thresholdRanks
 		the ThresholdRanks relation that contains the mapping from values to ranks
 **/
-private str getRank(num threshold, ThresholdRanks thresholdRanks) {
+public str getRank(num threshold, ThresholdRanks thresholdRanks) {
 	for (a <- thresholdRanks) {
 		if (threshold < a.threshold) {
 			return a.rank;
 		}
 	};
+	
+	return "n/a";
 }
+
+public str getRank(num threshold, ThresholdRanksEx thresholdRanks) {
+	for (a <- thresholdRanks) {
+		if (threshold <= a.threshold) {
+			return a.rank;
+		}
+	};
+	
+	return "n/a";
+}
+
+public str getRank(real threshold, ThresholdRanks thresholdRanks) {
+	for (a <- thresholdRanks) {
+		if (threshold <= a.threshold) {
+			return a.rank;
+		}
+	};
+	
+	return "n/a";
+}
+
+public str getRank(real threshold, ThresholdRanksReal thresholdRanks) {
+	for (a <- thresholdRanks) {
+		if (threshold <= a.threshold) {
+			return a.rank;
+		}
+	};
+	
+	return "n/a";
+}
+
+public int getRankNum(num threshold, ThresholdRanksEx thresholdRanks) {
+	for (a <- thresholdRanks) {
+		if (threshold <= a.threshold) {
+			return a.rankNum;
+		}
+	};
+	
+	return -1;
+}
+
+public int getRankNum(real threshold, ThresholdRanksReal thresholdRanks) {
+	for (a <- thresholdRanks) {
+		if (threshold <= a.threshold) {
+			return a.rankNum;
+		}
+	};
+	
+	return -1;
+}
+
 

@@ -28,7 +28,7 @@ private int getNumberOfAssertStatements(loc project) {
 	int numberOfAsserts = 0;
 
 	set[Declaration] declarations = createAstsFromEclipseProject(project, true);
-	for (i <- declarations) println(i);
+	//for (i <- declarations) println(i);
 	println(size(declarations));
 	visit(declarations){
     	case Declaration x:class(_, /simpleName(a), _, body) : {
