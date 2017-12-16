@@ -46,8 +46,10 @@ ThresholdRanks unitTestingRanks = [
 **/
 public void main() {
 
-	reportMetrics(|project://smallsql/|);
-	
+	reportMetrics(|project://hsqldb_small/|);
+	//reportMetrics(|project://core/|);
+	//reportMetrics(|project://Jabberpoint-le3/|);
+	//reportMetrics(|project://hsqldb_small/|);	
 }
 
 /**

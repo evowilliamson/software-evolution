@@ -187,6 +187,7 @@ public tuple[num cc, num unitSize] getCyclomaticComplexityAndUnitSize(loc projec
 		int cc = calcCCAst(methodAst);
 		str ccRank = getCCRank(cc);
 		
+		//Add loc of method to relative Loc category
 		switch(ccRank){				
 			case MODERATE: locCCModerate += locMethod;
 			case HIGH: locCCHigh += locMethod;
@@ -197,6 +198,7 @@ public tuple[num cc, num unitSize] getCyclomaticComplexityAndUnitSize(loc projec
 		//Determine unit size of the method
 		str unitSizeRank = getUnitSizeLocRank(locMethod);
 		
+		//Add loc of method to relative unti size category
 		switch(unitSizeRank){
 			case MODERATE: locUnitSizeModerate += locMethod;
 			case HIGH: locUnitSizeHigh += locMethod;
@@ -312,7 +314,7 @@ private int calcCCAst(methodAst) {
         case \while(_,_) : result += 1;
         case \for(_,_,_) : result += 1;
         case \for(_,_,_,_) : result += 1;
-        case foreach(_,_,_) : result += 1;
+        case foreach(_,_,_) : result += 1; //Not for Java 
         case \catch(_,_): result += 1;
         case \conditional(_,_,_): result += 1;
         case infix(_,"&&",_) : result += 1;
