@@ -33,6 +33,8 @@ public str getRank(num threshold, ThresholdRanks thresholdRanks) {
 			return a.rank;
 		}
 	};
+	
+	return "n/a";
 }
 
 public str getRank(num threshold, ThresholdRanksEx thresholdRanks) {
@@ -41,6 +43,8 @@ public str getRank(num threshold, ThresholdRanksEx thresholdRanks) {
 			return a.rank;
 		}
 	};
+	
+	return "n/a";
 }
 
 public str getRank(real threshold, ThresholdRanks thresholdRanks) {
@@ -49,6 +53,8 @@ public str getRank(real threshold, ThresholdRanks thresholdRanks) {
 			return a.rank;
 		}
 	};
+	
+	return "n/a";
 }
 
 public str getRank(real threshold, ThresholdRanksReal thresholdRanks) {
@@ -57,6 +63,8 @@ public str getRank(real threshold, ThresholdRanksReal thresholdRanks) {
 			return a.rank;
 		}
 	};
+	
+	return "n/a";
 }
 
 public int getRankNum(num threshold, ThresholdRanksEx thresholdRanks) {
@@ -65,6 +73,8 @@ public int getRankNum(num threshold, ThresholdRanksEx thresholdRanks) {
 			return a.rankNum;
 		}
 	};
+	
+	return -1;
 }
 
 public int getRankNum(real threshold, ThresholdRanksReal thresholdRanks) {
@@ -73,6 +83,8 @@ public int getRankNum(real threshold, ThresholdRanksReal thresholdRanks) {
 			return a.rankNum;
 		}
 	};
+	
+	return -1;
 }
 
 

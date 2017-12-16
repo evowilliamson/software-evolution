@@ -50,11 +50,11 @@ Threshold for calculating the moderate CC rating of a unit
 See second table on page 26 of the reader
 **/
 private ThresholdRanksEx thresholdCCModerate = [
-		<25, "++", 5>,
-		<30, "+", 4>,
+		<25, "++", 1>,
+		<30, "+", 2>,
 		<40, "o", 3>,		
-		<50, "-", 2>,
-		<MAXINT, "--", 1>
+		<50, "-", 4>,
+		<MAXINT, "--", 5>
 	];
 	
 /**
@@ -62,11 +62,11 @@ Threshold for calculating the high CC rating of a unit
 See second table on page 26 of the reader
 **/
 private ThresholdRanksEx thresholdCCHigh = [
-		<00, "++", 5>,
-		<5, "+", 4>,
+		<00, "++", 1>,
+		<5, "+", 2>,
 		<10, "o", 3>,		
-		<15, "-", 2>,
-		<MAXINT, "--", 1>
+		<15, "-", 4>,
+		<MAXINT, "--", 5>
 	];
 	
 /**
@@ -74,22 +74,22 @@ Threshold for calculating the very high CC rating of a unit
 See second table on page 26 of the reader
 **/
 private ThresholdRanksEx thresholdCCVeryHigh = [
-		<00, "++", 5>,
-		<00, "+", 4>,
+		<00, "++", 1>,
+		<00, "+", 2>,
 		<00, "o", 3>,		
-		<5, "-", 2>,
-		<MAXINT, "--", 1>
+		<5, "-", 4>,
+		<MAXINT, "--", 5>
 	];
 	
 /**
-Threshold for getting the aggregrate cc of the moderate, high and very high rankings 
+Threshold for getting the aggregrate cc or unit size of the moderate, high and very high rankings 
 **/
-private ThresholdRanksEx thresholdCCTotal = [
-		<1, "++", 1>,
-		<2, "+", 2>,
-		<3, "o", 3>,		
-		<4, "-", 4>,
-		<5, "--", 5>
+public ThresholdRanks thresholdTotal = [
+		<2, "++">,
+		<3, "+">,
+		<4, "o">,		
+		<5, "-">,
+		<6, "--">
 	];
 
 /**
@@ -151,19 +151,11 @@ private ThresholdRanksEx thresholdLocUnitSize = [
 		<MAXINT, VERY_HIGH, 2>
 	];		
 	
-private ThresholdRanksEx thresholdUnitSize = [
-		<1, "++", 1>,
-		<2, "+", 2>,
-		<3, "o", 3>,		
-		<4, "-", 4>,
-		<5, "--", 5>
-	];
-		
 /**
 Calsulates the cyclomatic complexity (cc) an the unit size (us) for every method and 
 aggegrates the cc and uc into one value for cc and one value for us.  
 **/
-public tuple[str, str] getCyclomaticComplexityAndUnitSize(loc project, str fileType) {
+public tuple[num cc, num unitSize] getCyclomaticComplexityAndUnitSize(loc project, str fileType) {
 	real locTotal = 0.0;
 	real locCCSimple = 0.0;
 	real locCCModerate = 0.0;
@@ -176,6 +168,10 @@ public tuple[str, str] getCyclomaticComplexityAndUnitSize(loc project, str fileT
 	int counter = 0;	
 
 	M3 m3 = createM3FromEclipseProject(project);
+	
+	println("");
+	println("Start calculating Cyclomatic Complexity and Unit size");
+	println("Walk through all methods");
 	
 	//Select all methods of the M3 object
 	for(method <- methods(m3)){
@@ -207,29 +203,31 @@ public tuple[str, str] getCyclomaticComplexityAndUnitSize(loc project, str fileT
 			default: locUnitSizeSimple += locMethod;
 		}
 		
-		println("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");
-						
+		println("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");					
 	}
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 
-	str ccRankStr = calculateCCRank(locTotal, locCCModerate, locCCHigh, locCCVeryHigh);
-	str unitSizeRankStr = calculateUnitSizeRank(locTotal, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
+	num ccRankAggregrated = calculateCCRank(locTotal, locCCModerate, locCCHigh, locCCVeryHigh);
+	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
 				
-	return <ccRankStr,  unitSizeRankStr>;	
+	return <ccRankAggregrated,  unitSizeRankAggregrated>;	
 }
 
-public str getCyclomaticMessage(str ccRankStr){
-	return "Cyclomatic complexity: <ccRankStr>";
+public str getCyclomaticMessage(num ccRank){
+	rank = getRank(ccRank, thresholdTotal);	
+	return "Cyclomatic complexity: <rank>";
 }
 
-public str getUnitSizeMessage(str unitSizeRankStr){
-	return "Unit size: <unitSizeRankStr>";
+public str getUnitSizeMessage(num unitSizeRank){
+	str rank = getRank(unitSizeRank, thresholdTotal);	
+	return "Unit size: <rank>";
 }
 
 /**
-Calculate the ccyclomatic complexity rank 
+Calculate the ccyclomatic complexity rank number. 
+Remark: Use the threshold thresholdCCTotal to get the cc text representation 
 **/
-private str calculateCCRank(num totalProjectLOC, real locModerate, real locHigh, real locVeryHigh){
+private num calculateCCRank(num totalProjectLOC, real locModerate, real locHigh, real locVeryHigh){
 	//Calculate the percentages of LOC per risk level
 	locTotal = toReal(totalProjectLOC);
 	real moderateLocPerc = (locModerate/locTotal) * 100;
@@ -245,15 +243,15 @@ private str calculateCCRank(num totalProjectLOC, real locModerate, real locHigh,
 	
 	//Calculate the aggregrated risk level
 	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);	
-	str rank = getRank(maxValue, thresholdCCTotal);	
 	
-	return rank;
+	return maxValue;
 }
 
 /**
-Calculate the unit size rank
+Calculate the unit size rank. 
+Remark: Use the threshold thresholdUnitSize to get the unit size string representation
 **/
-private str calculateUnitSizeRank(num totalProjectLOC, real locModerate, real locHigh, real locVeryHigh){
+private num calculateUnitSizeRank(num totalProjectLOC, real locModerate, real locHigh, real locVeryHigh){
 	//Calculate the percentages of LOC per risk level
 	locTotal = toReal(totalProjectLOC);
 	real moderateLocPerc = (locModerate/locTotal) * 100;
@@ -268,10 +266,9 @@ private str calculateUnitSizeRank(num totalProjectLOC, real locModerate, real lo
 	println("Unit Size rank moderate: <getRank(moderateLocPerc, thresholdUnitSizeModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdUnitSizeHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdUnitSizeVeryHigh)> (<rankVeryHigh>)");
 	
 	//Calculate the aggregrated risk level
-	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);	
-	str rank = getRank(maxValue, thresholdUnitSize);	
+	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);		
 	
-	return rank;
+	return maxValue;
 }
 
 /**
@@ -283,6 +280,7 @@ private str calculateUnitSizeRank(num totalProjectLOC, real locModerate, real lo
 **/
 private str getCCRank(int cc){		
 	str rank = getRank(cc, thresholdCCUnit);
+	//println("cc <cc> - <rank>");
 	return rank;
 }
 
@@ -300,7 +298,7 @@ private str getUnitSizeLocRank(int linesOfCode){
 }
 
 /**
-Calculate the cc of a method. Herefore the ast is visited.
+Calculate the cc of a method. Herefore the ast of a method is visited. 
 **/
 private int calcCCAst(methodAst) {
     int result = 1;
@@ -327,8 +325,8 @@ Main methdod for testing the cyclomatic complexity and the unit size.
 public void main() {
 	//loc project = |project://smallsql/|;
 	//loc project = |project://hsqldb/|;	
-	//loc project = |project://TestApplication/|;
-	loc project = |project://Jabberpoint-le3/|;
+	loc project = |project://TestApplication/|;
+	//loc project = |project://Jabberpoint-le3/|;
 	str fileType = "java";		
 	
 	result = getCyclomaticComplexityAndUnitSize(project, fileType);
