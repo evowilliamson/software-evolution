@@ -176,6 +176,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 	println("Start calculating Cyclomatic Complexity and Unit size");
 	println("Walk through all methods");
 	
+	set[tuple[int size, int complexity]] metrics = {};
 	//Select all methods of the M3 object
 	for(method <- methods(m3)){
 		//Get AST of method		
@@ -210,14 +211,15 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 			default: locUnitSizeSimple += locMethod;
 		}
 		
-		println("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");					
+		println("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");			
+		metrics = metrics + <cc, locMethod>;		
 	}
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 
 	num ccRankAggregrated = calculateCCRank(locTotal, locCCSimple, locCCModerate, locCCHigh, locCCVeryHigh);
 	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locUnitSizeSimple, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
 				
-	return ComplexityAggregate(totalCC, ccRankAggregrated, unitSizeRankAggregrated);	
+	return ComplexityAggregate(totalCC, ccRankAggregrated, unitSizeRankAggregrated, metrics);	
 }
 
 public str getCyclomaticMessage(num ccRank){
