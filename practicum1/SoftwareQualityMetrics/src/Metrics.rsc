@@ -44,8 +44,8 @@ public void main() {
 
 //	reportMetrics(|project://UPO/|);
 	//reportMetrics(|project://core/|);
-	reportMetrics(|project://Jabberpoint-le3/|);
-	//reportMetrics(|project://TestApplication/|);
+	//reportMetrics(|project://Jabberpoint-le3/|);
+	reportMetrics(|project://TestApplication/|);
 	//reportMetrics(|project://hsqldb_small/|);	
 }
 
