@@ -215,7 +215,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 
 	num ccRankAggregrated = calculateCCRank(locTotal, locCCModerate, locCCHigh, locCCVeryHigh);
-	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locCCSimple, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
+	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locUnitSizeSimple, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
 				
 	return ComplexityAggregate(totalCC, ccRankAggregrated, unitSizeRankAggregrated);	
 }
