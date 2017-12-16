@@ -20,7 +20,7 @@ import lang::java::jdt::m3::AST;
 import IO;
 import Set;
 
-public num getUnitTesting(loc project, str fileType, num totalCC) {
+public int getUnitTesting(loc project, str fileType, int totalCC) {
 	return (getNumberOfAssertStatements(project)/totalCC)*100;
 }
 
@@ -28,8 +28,6 @@ private int getNumberOfAssertStatements(loc project) {
 	int numberOfAsserts = 0;
 
 	set[Declaration] declarations = createAstsFromEclipseProject(project, true);
-	//for (i <- declarations) println(i);
-	println(size(declarations));
 	visit(declarations){
     	case Declaration x:class(_, /simpleName(a), _, body) : {
     		visit(body) {
@@ -37,8 +35,6 @@ private int getNumberOfAssertStatements(loc project) {
     		}
     	}
 	}
-	println(numberOfAsserts);
-	println("fdf");
 	return numberOfAsserts;
 }
 

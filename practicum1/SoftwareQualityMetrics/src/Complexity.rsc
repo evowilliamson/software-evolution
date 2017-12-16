@@ -180,6 +180,7 @@ public tuple[num cc, num unitSize] getCyclomaticComplexityAndUnitSize(loc projec
 				
 		//Get LOC of method
 		int locMethod = getLOCForSourceFile(method);
+		println(locMethod);
 		locTotal += locMethod;
 				
 		//Determine CC of the method
@@ -208,7 +209,7 @@ public tuple[num cc, num unitSize] getCyclomaticComplexityAndUnitSize(loc projec
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 
 	num ccRankAggregrated = calculateCCRank(locTotal, locCCModerate, locCCHigh, locCCVeryHigh);
-	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
+	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locCCSimple, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
 				
 	return <ccRankAggregrated,  unitSizeRankAggregrated>;	
 }
@@ -251,13 +252,14 @@ private num calculateCCRank(num totalProjectLOC, real locModerate, real locHigh,
 Calculate the unit size rank. 
 Remark: Use the threshold thresholdUnitSize to get the unit size string representation
 **/
-private num calculateUnitSizeRank(num totalProjectLOC, real locModerate, real locHigh, real locVeryHigh){
+private num calculateUnitSizeRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh){
 	//Calculate the percentages of LOC per risk level
 	locTotal = toReal(totalProjectLOC);
+	real simpleLocPerc = (locSimple/locTotal) * 100;
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	println("Unit Size loc Total methods: <locTotal>, loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+	println("Unit Size loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdUnitSizeModerate);
@@ -325,7 +327,7 @@ Main methdod for testing the cyclomatic complexity and the unit size.
 public void main() {
 	//loc project = |project://smallsql/|;
 	//loc project = |project://hsqldb/|;	
-	loc project = |project://TestApplication/|;
+	loc project = |project://smallsql/|;
 	//loc project = |project://Jabberpoint-le3/|;
 	str fileType = "java";		
 	
