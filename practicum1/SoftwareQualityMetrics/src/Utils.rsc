@@ -32,7 +32,7 @@ This method retrieves the number of lines of the given file
    @location 
    		the file location
 **/
-private int getLOCForSourceFile(loc file){
+public int getLOCForSourceFile(loc file){
 	s = readFile(file);
 	//println("code: <s>");
 	return getNumberOfLinesInString(removeEmptyLines(filterCode(s, false)));

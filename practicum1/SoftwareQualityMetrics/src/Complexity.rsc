@@ -3,6 +3,9 @@ module Complexity
 /**
 	@author Marco Huijben
 	This module contains methods to determine the complexity of an unit
+	
+	And the unit size
+	[1] https://www.sig.eu/files/en/080_Benchmark-based_Aggregation_of_Metrics_to_Ratings.pdf
 **/
 
 import IO;
@@ -17,6 +20,9 @@ import util::Resources;
 import util::Math;
 import util::Benchmark;
 
+import Utils;
+import Threshold;
+
 str METRIC_NAME = "Complexity";
 
 private str SIMPLE = "simple"; 
@@ -24,277 +30,252 @@ private str MODERATE = "moderate";
 private str HIGH = "high";
 private str VERY_HIGH = "very high";
 
-alias ThresholdRanks = list[tuple[int threshold, str rank, int rankNum]];
+//Define the thresholds for calculatibng the Cyclomatic Complexity and the Unit size
+int MAXINT = 9999999;
+real MAXREAL = 9999999.0;
 
-private ThresholdRanks thresholdCCUnit = [
+/**
+Threshold for de CC of a unit
+See first table on page 26 of the reader
+**/
+private ThresholdRanksEx thresholdCCUnit = [
 		<11, SIMPLE, 5>,
 		<21, MODERATE, 4>,
 		<50, HIGH, 3>,		
-		<Utils::MAXINT, VERY_HIGH, 2>
+		<MAXINT, VERY_HIGH, 2>
 	];
 	
-private ThresholdRanks thresholdCCModerate = [
-		<25, "++", 1>,
-		<30, "+", 2>,
+/**
+Threshold for calculating the moderate CC rating of a unit
+See second table on page 26 of the reader
+**/
+private ThresholdRanksEx thresholdCCModerate = [
+		<25, "++", 5>,
+		<30, "+", 4>,
 		<40, "o", 3>,		
-		<50, "-", 4>,
-		<Utils::MAXINT, "--", 5>
+		<50, "-", 2>,
+		<MAXINT, "--", 1>
 	];
 	
-private ThresholdRanks thresholdCCHigh = [
-		<00, "++", 1>,
-		<5, "+", 2>,
+/**
+Threshold for calculating the high CC rating of a unit
+See second table on page 26 of the reader
+**/
+private ThresholdRanksEx thresholdCCHigh = [
+		<00, "++", 5>,
+		<5, "+", 4>,
 		<10, "o", 3>,		
-		<15, "-", 4>,
-		<Utils::MAXINT, "--", 5>
+		<15, "-", 2>,
+		<MAXINT, "--", 1>
 	];
 	
-private ThresholdRanks thresholdCCVeryHigh = [
-		<00, "++", 1>,
-		<00, "+", 2>,
+/**
+Threshold for calculating the very high CC rating of a unit
+See second table on page 26 of the reader
+**/
+private ThresholdRanksEx thresholdCCVeryHigh = [
+		<00, "++", 5>,
+		<00, "+", 4>,
 		<00, "o", 3>,		
-		<5, "-", 4>,
-		<Utils::MAXINT, "--", 5>
+		<5, "-", 2>,
+		<MAXINT, "--", 1>
 	];
 	
-private ThresholdRanks thresholdCCTotal = [
+/**
+Threshold for getting the aggregrate cc of the moderate, high and very high rankings 
+**/
+private ThresholdRanksEx thresholdCCTotal = [
 		<1, "++", 1>,
 		<2, "+", 2>,
 		<3, "o", 3>,		
 		<4, "-", 4>,
 		<5, "--", 5>
 	];
+
+/**
+Threshold for the low risk of the unit size
+See column "Low risk" of table IIIa of [1]
+**/
+private ThresholdRanksEx thresholdUnitSizeLow = [ 
+		<MAXINT, "++", 1>,
+		<MAXINT, "+", 2>,
+		<MAXINT, "o", 3>,		
+		<MAXINT, "-", 4>,
+		<MAXINT, "--", 5>
+	];
+
+/**
+Threshold for the moderate risk of the unit size
+See column "Moderate risk" of table IIIa of [1]
+**/
+private ThresholdRanksReal thresholdUnitSizeModerate = [ 
+		<19.5, "++", 1>,
+		<26.0, "+", 2>,
+		<34.1, "o", 3>,		
+		<45.9, "-", 4>,
+		<MAXREAL, "--", 5>
+	];
 	
 /**
-Get the complexity rating of the project
-Works for small projects (e.g. smallsql)
+Threshold for the high risk unit size
+See column "High risk" of table IIIa of [1]
 **/
-public str getComplexityWithM3(loc project, str fileType) {
+private ThresholdRanksReal thresholdUnitSizeHigh = [ 
+		<10.9, "++", 1>,
+		<15.5, "+", 2>,
+		<22.2, "o", 3>,		
+		<31.4, "-", 4>,
+		<MAXREAL, "--", 5>
+	];
+	
+/**
+Threshold for the very high risk unit size
+See column "Very high" risk of table IIIa of [1]
+**/
+private ThresholdRanksReal thresholdUnitSizeVeryHigh = [ 
+		<3.9, "++", 1>,
+		<6.5, "+", 2>,
+		<11.0, "o", 3>,		
+		<18.1, "-", 4>,
+		<MAXREAL, "--", 5>
+	];
+		
+/**
+Threshold for determing the risk (low, moderate, high, very high) of a unit size) depending on the LOC of a unit.
+See the header of table IIIa of [1]
+**/		
+private ThresholdRanksEx thresholdLocUnitSize = [ 
+		<30, SIMPLE, 5>,
+		<44, MODERATE, 4>,
+		<74, HIGH, 3>,		
+		<MAXINT, VERY_HIGH, 2>
+	];		
+	
+private ThresholdRanksEx thresholdUnitSize = [
+		<1, "++", 1>,
+		<2, "+", 2>,
+		<3, "o", 3>,		
+		<4, "-", 4>,
+		<5, "--", 5>
+	];
+		
+/**
+Calsulates the cyclomatic complexity (cc) an the unit size (us) for every method and 
+aggegrates the cc and uc into one value for cc and one value for us.  
+**/
+public tuple[str, str] getCyclomaticComplexityAndUnitSize(loc project, str fileType) {
 	real locTotal = 0.0;
-	real locSimple = 0.0;
-	real locModerate = 0.0;
-	real locHigh = 0.0;
-	real locVeryHigh = 0.0;
+	real locCCSimple = 0.0;
+	real locCCModerate = 0.0;
+	real locCCHigh = 0.0;
+	real locCCVeryHigh = 0.0;
+	real locUnitSizeSimple = 0.0;
+	real locUnitSizeModerate = 0.0;
+	real locUnitSizeHigh = 0.0;
+	real locUnitSizeVeryHigh = 0.0;
 	int counter = 0;	
 
-	set[loc] files = Utils::getSourceFilesInLocation(project, fileType);
-	println("Amount of files in the project: <size(files)>");
+	M3 m3 = createM3FromEclipseProject(project);
 	
-	M3 m = createM3FromEclipseProject(project);
-	
-	//Select all methods
-	rel[loc, loc] methods = { <x,y> | <x,y> <- m@containment,
-		x.scheme=="java+class",
-		y.scheme=="java+method" ||
-		y.scheme=="java+constructor" };
-			
-	methodsClass = { <a, methods[a]> | a <- domain(methods)};
-					
-	//Calculate cc for every method
-	for(<a,n> <- methodsClass){
-		counter += 1;
-		println("file <counter>: <a>");
-	
-		for(method <- n){
-			Declaration d = getMethodASTEclipse(method, model = m);									
-									
-			int cc = 0;
-			Statement statement;
-			for(/Statement s := d) 
-			{
-				statement = s;										
-			}				
-			
-			if (statement?){
-				cc = calcCC(statement);
+	//Select all methods of the M3 object
+	for(method <- methods(m3)){
+		//Get AST of method		
+		methodAst = getMethodASTEclipse(method, model = m3);		
 				
-				int locMethod = Utils::getLOCForSourceFile(d@src);
-				locTotal += locMethod;
-				str rank = getCCRank(cc);
+		//Get LOC of method
+		int locMethod = getLOCForSourceFile(method);
+		locTotal += locMethod;
 				
-				switch(rank){				
-					case MODERATE: locModerate += locMethod;
-					case HIGH: locHigh += locMethod;
-					case VERY_HIGH: locVeryHigh += locMethod;
-					default: locSimple += locMethod;
-				}
-				
-				println("Method: <method>, loc <locMethod>, cc: <cc>, rank: <rank>");
-			}
-			else{
-				println("Error in file: <method>");
-			}			
-		}	
+		//Determine CC of the method
+		int cc = calcCCAst(methodAst);
+		str ccRank = getCCRank(cc);
 		
-		gc();			
-	}
-	
-	str rank = calculateRank(locTotal, locModerate, locHigh, locVeryHigh); 		
-				
-	return "Cyclomatic complexity: <rank>";
-}
-
-/**
-Get the complexity rating of the project
-
-Very slow!!!
-**/
-public str getComplexity(loc project, str fileType) {
-	real locTotal = 0.0;
-	real locSimple = 0.0;
-	real locModerate = 0.0;
-	real locHigh = 0.0;
-	real locVeryHigh = 0.0;
-	int counter = 0;
-	
-	set[loc] files = Utils::getSourceFilesInLocation(project, fileType);
-	println("Amount of files in the project: <size(files)>");
-	
-	for(file <- files){
-		counter += 1;
-		println("file <counter>: <file>");
-		
-		M3 m = createM3FromEclipseFile(file);				
-		
-		//Select all methods
-		list[loc] methods = [ y | <x,y> <- m@containment,
-			x.scheme=="java+class",		
-			y.scheme=="java+method" ||
-			y.scheme=="java+constructor" ];					
-				
-		//Calculate cc for every method
-		for(method <- methods){
-			Declaration d = getMethodASTEclipse(method, model = m);									
-									
-			int cc = 0;
-			Statement statement;
-			for(/Statement s := d) 
-			{
-				statement = s;										
-			}				
-			
-			if (statement?){
-				cc = calcCC(statement);
-				
-				int locMethod = Utils::getLOCForSourceFile(d@src);
-				locTotal += locMethod;
-				str rank = getCCRank(cc);
-				
-				switch(rank){				
-					case MODERATE: locModerate += locMethod;
-					case HIGH: locHigh += locMethod;
-					case VERY_HIGH: locVeryHigh += locMethod;
-					default: locSimple += locMethod;
-				}
-				
-				println("Method: <method>, loc <locMethod>, cc: <cc>, rank: <rank>");
-			}
-			else{
-				println("Error in file: <method>");
-			}			
-		}	
-				
-		gc();		
-	}
-	
-	println("loc Total methods: <locTotal>, loc Moderate: <locModerate>, loc High: <locHigh>, loc Very High: <locVeryHigh>");	
-	
-	str rank = calculateRank(locTotal, locModerate, locHigh, locVeryHigh); 		
-				
-	return "Cyclomatic complexity: <rank>";
-}
-
-/**
-Get the complexity rating of the project
-**/
-public str getComplexityTest(loc project, str fileType) {
-	real locTotal = 0.0;
-	real locSimple = 0.0;
-	real locModerate = 0.0;
-	real locHigh = 0.0;
-	real locVeryHigh = 0.0;
-	int counter = 0;
-	
-	M3 m = createM3FromEclipseProject(project);
-	
-	//println("m3 <m>");
-	/*
-	list[loc] methods = [ y | <x,y> <- m@containment,
-	x.scheme=="java+class",		
-	y.scheme=="java+method" ||
-	y.scheme=="java+constructor" ];					
-				
-	//Calculate cc for every method
-	for(method <- methods){
-		Declaration d = getMethodASTEclipse(method, model = m);									
-								
-		int cc = 0;
-		Statement statement;
-		for(/Statement s := d) 
-		{
-			statement = s;										
-		}				
-		
-		if (statement?){
-			cc = calcCC(statement);
-			
-			int locMethod = Utils::getLOCForSourceFile(d@src);
-			locTotal += locMethod;
-			str rank = getCCRank(cc);
-			
-			switch(rank){				
-				case MODERATE: locModerate += locMethod;
-				case HIGH: locHigh += locMethod;
-				case VERY_HIGH: locVeryHigh += locMethod;
-				default: locSimple += locMethod;
-			}
-			
-			counter += 1;
-			println("Method <counter>: <method>, loc <locMethod>, cc: <cc>, rank: <rank>");			
+		switch(ccRank){				
+			case MODERATE: locCCModerate += locMethod;
+			case HIGH: locCCHigh += locMethod;
+			case VERY_HIGH: locCCVeryHigh += locMethod;
+			default: locCCSimple += locMethod;
 		}
-		else{
-			println("Error in file: <method>");
-		}		
+										
+		//Determine unit size of the method
+		str unitSizeRank = getUnitSizeLocRank(locMethod);
 		
-		if (counter % 100 == 0){
-			gc();
-			println("modulo gc");
-		}	
-	}	
-	println("loc Total methods: <locTotal>, loc Moderate: <locModerate>, loc High: <locHigh>, loc Very High: <locVeryHigh>");	
+		switch(unitSizeRank){
+			case MODERATE: locUnitSizeModerate += locMethod;
+			case HIGH: locUnitSizeHigh += locMethod;
+			case VERY_HIGH: locUnitSizeVeryHigh += locMethod;
+			default: locUnitSizeSimple += locMethod;
+		}
+		
+		println("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");
+						
+	}
 	
-	str rank = calculateRank(locTotal, locModerate, locHigh, locVeryHigh); 		
-				*/
-	return "Cyclomatic complexity: <rank>";
+	//Aggregrates the calculates cc and us into one cc and us for the project 
+	str ccRankStr = calculateCCRank(locTotal, locCCModerate, locCCHigh, locCCVeryHigh);
+	str unitSizeRankStr = calculateUnitSizeRank(locTotal, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
+				
+	return <ccRankStr,  unitSizeRankStr>;	
+}
+
+public str getCyclomaticMessage(str ccRankStr){
+	return "Cyclomatic complexity: <ccRankStr>";
+}
+
+public str getUnitSizeMessage(str unitSizeRankStr){
+	return "Unit size: <unitSizeRankStr>";
 }
 
 /**
 Calculate the ccyclomatic complexity rank 
 **/
-private str calculateRank(num totalProjectLOC, real locModerate, real locHigh, real locVeryHigh){
+private str calculateCCRank(num totalProjectLOC, real locModerate, real locHigh, real locVeryHigh){
 	//Calculate the percentages of LOC per risk level
 	locTotal = toReal(totalProjectLOC);
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	println("loc Total methods: <locTotal>, loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+	println("CC loc Total methods: <locTotal>, loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 			
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdCCModerate);
 	int rankHigh = getRankNum(highLocPerc, thresholdCCHigh);
 	int rankVeryHigh = getRankNum(veryHighLocPerc, thresholdCCVeryHigh);
-	println("rank moderate: <getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)");
+	println("CC rank moderate: <getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)");
 	
 	//Calculate the aggregrated risk level
-	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);
-	println("min value: <maxValue>");
+	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);	
 	str rank = getRank(maxValue, thresholdCCTotal);	
 	
 	return rank;
 }
 
 /**
- Get the rank of the cc
+Calculate the unit size rank
+**/
+private str calculateUnitSizeRank(num totalProjectLOC, real locModerate, real locHigh, real locVeryHigh){
+	//Calculate the percentages of LOC per risk level
+	locTotal = toReal(totalProjectLOC);
+	real moderateLocPerc = (locModerate/locTotal) * 100;
+	real highLocPerc = (locHigh/locTotal) * 100;
+	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
+	println("Unit Size loc Total methods: <locTotal>, loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+
+	//Calculate the rank for each risk level
+	int rankModerate = getRankNum(moderateLocPerc, thresholdUnitSizeModerate);
+	int rankHigh = getRankNum(highLocPerc, thresholdUnitSizeHigh);
+	int rankVeryHigh = getRankNum(veryHighLocPerc, thresholdUnitSizeVeryHigh);
+	println("Unit Size rank moderate: <getRank(moderateLocPerc, thresholdUnitSizeModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdUnitSizeHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdUnitSizeVeryHigh)> (<rankVeryHigh>)");
+	
+	//Calculate the aggregrated risk level
+	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);	
+	str rank = getRank(maxValue, thresholdUnitSize);	
+	
+	return rank;
+}
+
+/**
+ Get the rank of the cc for a unit
  1-10: simple
  11-20: moderate
  21-50: high
@@ -306,12 +287,24 @@ private str getCCRank(int cc){
 }
 
 /**
-Calculate the CC
-Source: https://stackoverflow.com/questions/40064886/obtaining-cyclomatic-complexity
+  Get the rank of the unit size for a unit
+  0-30: low
+  31-44: moderate
+  45-74: high
+  >= 75 very high
+  
+  See "Benchmark-based Aggregation of Metrics to Rating", T. L. Alves, J.P. Correia and J. Visser Table IIIa.
 **/
-private int calcCC(Statement impl) {
+private str getUnitSizeLocRank(int linesOfCode){
+	return getRank(linesOfCode, thresholdLocUnitSize);
+}
+
+/**
+Calculate the cc of a method. Herefore the ast is visited.
+**/
+private int calcCCAst(methodAst) {
     int result = 1;
-    visit (impl) {
+    visit (methodAst) {
         case \if(_,_) : result += 1;
         case \if(_,_,_) : result += 1;
         case \case(_) : result += 1;
@@ -329,47 +322,16 @@ private int calcCC(Statement impl) {
 }
 
 /**
-	This methods retrieves the rank that is associated with the value 
-	@theValue 
-		the value that is being looked up in the ThresholdRanks relation
-	@thresholdRanks
-		the ThresholdRanks relation that contains the mapping from values to ranks
+Main methdod for testing the cyclomatic complexity and the unit size.
 **/
-private str getRank(num threshold, ThresholdRanks thresholdRanks) {
-	for (a <- thresholdRanks) {
-		if (threshold <= a.threshold) {
-			return a.rank;
-		}
-	};
-}
-
-private int getRankNum(num threshold, ThresholdRanks thresholdRanks) {
-	for (a <- thresholdRanks) {
-		if (threshold <= a.threshold) {
-			return a.rankNum;
-		}
-	};
-}
-
-/**
-This method retrieves the number of lines of the given file
-   @location 
-   		the file location
-**/
-private int getLOCForSourceFile(loc file){
-	s = readFile(file);
-	//println("code: <s>");
-	return getNumberOfLinesInString(filterCode(s));
-}
-
 public void main() {
 	//loc project = |project://smallsql/|;
-	//loc project = |project://hsqldb/|;
-	loc project = |project://JavaTestProject/|; 
-	str fileType = "java";
+	//loc project = |project://hsqldb/|;	
+	//loc project = |project://TestApplication/|;
+	loc project = |project://Jabberpoint-le3/|;
+	str fileType = "java";		
 	
-	//println("cc 1: <Complexity::getComplexityTest(project, fileType)>");
-	println("cc 2: <Complexity::getComplexityWithM3(project, fileType)>");
-	//println("cc 2: <Complexity::getComplexity(project, fileType)>");		
-	
+	result = getCyclomaticComplexityAndUnitSize(project, fileType);
+	println("<getCyclomaticMessage(result[0])>");
+	println("<getUnitSizeMessage(result[1])>");	
 }
