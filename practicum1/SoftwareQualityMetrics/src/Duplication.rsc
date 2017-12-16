@@ -33,12 +33,12 @@ import List;
 import Map;
 import Volume;
 import DateTime;
+import Types;
 
 data WindowSlider = WindowSlider(int lineIndex, int positionFirstChar, list[int] eoLines, list[int] slice);
 
 private int WINDOW_SIZE = 6;
 private map[loc location, str code] sourcesMap = ();
-private int duplicatedLines = 0;
 private WindowSlider windowSlider = WindowSlider(0, 0, [], []);
 
 alias cache = map[str, bool];
@@ -51,16 +51,29 @@ private cache duplicationCache = ();
 	@totalLOC the total number of lines of code in the system
 	returns: % of lines that are duplicated
 **/
-public num getDuplication(loc location, str fileType) {
-	num totalLOC = Volume::getTotalLOC(location, fileType, true);
+public MetricAggregate getDuplication(loc location, str fileType) {
+	/** Calculate the totalLOC. Note that the metric calculated by Volumne cannot be
+	reused, as this metric contains import statements which will excluded 
+	in the Duplication metric. So the Volume metric TLOC will be calculated
+	without the imports, this is indicated by the parameter removeImports which is
+	"true" in the following method call. **/
+	int totalLOC = Volume::getTotalLOC(location, fileType, true);
+	int totalDuplicatedLines = 0;
 	
+	set[tuple[str unit, int weight, int metric]] metricsPerUnit = {};
 	// Get all sources and store it together with the location in a list
 	sourcesMap = getSourceFiles(location, fileType);
 	for (source <- sourcesMap) {
-		detectDuplications(source, sourcesMap[source]); 
+		/*if (source.file != "ExpressionFunctionDifference.java") {
+			continue;
+		};*/
+	
+		int duplicatedLines = getDuplicationPerFile(source, sourcesMap[source]); 
+		totalDuplicatedLines += duplicatedLines;
+		metricsPerUnit = metricsPerUnit + <source.file, Utils::getLOCForSourceFile(source, true), duplicatedLines>;
 	};
 	
-	return (duplicatedLines / totalLOC) * 100;
+	return MetricAggregate(totalLOC, totalDuplicatedLines, metricsPerUnit);
 }
 
 /**
@@ -68,9 +81,11 @@ public num getDuplication(loc location, str fileType) {
 	are duplications in the code itself
 	@location the location of the source 
 	@code the source code
-	returns: void
+	returns: number of duplicated lines
 **/	
-private void detectDuplications(loc location, str code) {
+private int getDuplicationPerFile(loc location, str code) {
+	int duplicatedLines = 0;
+
 	// Create a window slider by finding all newlines in the code
 	windowSlider = WindowSlider(0, 0, findAll(code, "\n"), []);
 	while (canTakeNextSlice(windowSlider)) {
@@ -78,13 +93,13 @@ private void detectDuplications(loc location, str code) {
 		str codeStringToCheck = getCodeString(windowSlider, code);
 		// First check for duplications in the current code
 		if (checkDuplicationsInCurrentSource(codeStringToCheck, code)) {
-			raiseDuplications();
+			duplicatedLines = raiseDuplications(duplicatedLines);
 			windowSlider = slideWindowOverDuplication(windowSlider);
 		}
 		else {
 			// If a duplication is not found in the current code, check other sources for duplications
 			if (checkDuplicationsInOtherSources(codeStringToCheck, location)) {
-				raiseDuplications();
+				duplicatedLines = raiseDuplications(duplicatedLines);
 				windowSlider = slideWindowOverDuplication(windowSlider);			
 			}
 			else {
@@ -92,6 +107,8 @@ private void detectDuplications(loc location, str code) {
 			}
 		};
 	};
+	
+	return duplicatedLines;
 }
 
 /**
@@ -169,10 +186,10 @@ private str getCodeString(WindowSlider windowSlider, str code) {
 
 /**
 	Raises the number of duplicated line with the WINDOW_SIZE
-	returns: void 
+	returns: increased duplicated lines
 **/
-private void raiseDuplications() {
-	duplicatedLines += WINDOW_SIZE;
+private int raiseDuplications(int duplicatedLines) {
+	return duplicatedLines + WINDOW_SIZE;
 }
 
 /**
@@ -227,9 +244,9 @@ private bool checkDuplicationInSource(str codeStringToCheck, str code) {
    		the type of the file
    returns: a map of location and its code
 **/
-public map[loc location, str code] getSourceFiles(loc location, str fileType) {
-	return (location: Utils::removeEmptyLines(Utils::filterCode(readFile(a), true)) | 
-					location <- Utils::getSourceFilesInLocation(location, fileType));
+public map[loc location, str code] getSourceFiles(loc project, str fileType) {
+	return (location: Utils::removeEmptyLines(Utils::filterCode(readFile(location), true)) | 
+					location <- Utils::getSourceFilesInLocation(project, fileType));
 }
 
 /**
@@ -239,7 +256,7 @@ public void testGetMetrics() {
 	//getMetric(|project://Jabberpoint/|, "java", 10000);
 	//getMetric(|project://TestSoftwareQualityMetrics/|, "java", 10000);
 	//getMetric(|project://smallsql/|, "java", 10000);
-	//getMetric(|project://hsqldb_small/|, "java", 10000);
+	println(getDuplication(|project://hsqldb_small/|, "java"));
 	//getMetric(|project://hsqldb/|, "java", 10000);
 }
 

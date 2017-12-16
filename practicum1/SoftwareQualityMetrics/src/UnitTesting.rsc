@@ -33,10 +33,12 @@ private int getNumberOfAssertStatements(loc project) {
 	visit(declarations){
     	case Declaration x:class(_, /simpleName(a), _, body) : {
     		visit(body) {
-    			case /assert/ : numberOfAsserts += 1;
+    			case /System/ : numberOfAsserts += 1;
     		}
     	}
 	}
+	println(numberOfAsserts);
+	println("fdf");
 	return numberOfAsserts;
 }
 

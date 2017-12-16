@@ -15,6 +15,7 @@ import util::Resources;
 import lang::java::jdt::m3::Core;
 import analysis::m3::Core;
 import String;
+import util::Math;
 
 int MAXINT = 9999999;
 
@@ -36,6 +37,18 @@ private int getLOCForSourceFile(loc file){
 	s = readFile(file);
 	//println("code: <s>");
 	return getNumberOfLinesInString(removeEmptyLines(filterCode(s, false)));
+}
+
+/**
+This method retrieves the number of lines of the given file
+	@location 
+   		the file location
+	@removeImports
+		indicator that signifies whether imports should be ignored (true) or not (false)
+	returns: the number of LOC for the file
+**/
+public int getLOCForSourceFile(loc file, bool removeImports){
+	return getNumberOfLinesInString(removeEmptyLines(filterCode(readFile(file), removeImports)));
 }
 
 /**
@@ -64,6 +77,14 @@ public list[tuple[loc location, int lOCs]] getLOCPerSourceFile(loc location, str
 private set[loc] getSourceFilesInLocation(loc location, str fileType) {
 	Resource project = getProject(location);
 	return { a | /file(a) <- project, a.extension == fileType };
+}
+
+/**
+	Get histogram X value
+**/
+public int getHistogramX(int x, int bucketSize) {
+	real r = x / toReal(bucketSize);
+	return floor(r+1) * bucketSize;
 }
 
 /**

@@ -21,7 +21,7 @@ import util::Resources;
    @removeImports
    		indicates whether the TLOC should include import statements or not 
 **/
-public num getTotalLOC(loc location, str fileType, bool removeImports) {
+public int getTotalLOC(loc location, str fileType, bool removeImports) {
 	int totalLines = 0;
 	for (a <- Utils::getLOCPerSourceFile(location, fileType, removeImports)) {
 		totalLines += a.lOCs;
