@@ -51,7 +51,7 @@ private cache duplicationCache = ();
 	@totalLOC the total number of lines of code in the system
 	returns: % of lines that are duplicated
 **/
-public MetricAggregate getDuplication(loc location, str fileType) {
+public DuplicationAggregate getDuplication(loc location, str fileType) {
 	/** Calculate the totalLOC. Note that the metric calculated by Volumne cannot be
 	reused, as this metric contains import statements which will excluded 
 	in the Duplication metric. So the Volume metric TLOC will be calculated
@@ -73,7 +73,7 @@ public MetricAggregate getDuplication(loc location, str fileType) {
 		metricsPerUnit = metricsPerUnit + <source.file, Utils::getLOCForSourceFile(source, true), duplicatedLines>;
 	};
 	
-	return MetricAggregate(totalLOC, totalDuplicatedLines, metricsPerUnit);
+	return DuplicationAggregate(totalLOC, totalDuplicatedLines, metricsPerUnit);
 }
 
 /**

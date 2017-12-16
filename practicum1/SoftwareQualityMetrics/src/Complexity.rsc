@@ -19,6 +19,7 @@ import lang::java::m3::AST;
 import util::Resources;
 import util::Math;
 import util::Benchmark;
+import Types;
 
 import Utils;
 import Threshold;
@@ -155,7 +156,7 @@ private ThresholdRanksEx thresholdLocUnitSize = [
 Calsulates the cyclomatic complexity (cc) an the unit size (us) for every method and 
 aggegrates the cc and uc into one value for cc and one value for us.  
 **/
-public tuple[num cc, num unitSize] getCyclomaticComplexityAndUnitSize(loc project, str fileType) {
+public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str fileType) {
 	real locTotal = 0.0;
 	real locCCSimple = 0.0;
 	real locCCModerate = 0.0;
@@ -166,6 +167,8 @@ public tuple[num cc, num unitSize] getCyclomaticComplexityAndUnitSize(loc projec
 	real locUnitSizeHigh = 0.0;
 	real locUnitSizeVeryHigh = 0.0;
 	int counter = 0;	
+	
+	int totalCC = 0;
 
 	M3 m3 = createM3FromEclipseProject(project);
 	
@@ -185,6 +188,7 @@ public tuple[num cc, num unitSize] getCyclomaticComplexityAndUnitSize(loc projec
 				
 		//Determine CC of the method
 		int cc = calcCCAst(methodAst);
+		totalCC += cc;
 		str ccRank = getCCRank(cc);
 		
 		//Add loc of method to relative Loc category
@@ -213,7 +217,7 @@ public tuple[num cc, num unitSize] getCyclomaticComplexityAndUnitSize(loc projec
 	num ccRankAggregrated = calculateCCRank(locTotal, locCCModerate, locCCHigh, locCCVeryHigh);
 	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locCCSimple, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
 				
-	return <ccRankAggregrated,  unitSizeRankAggregrated>;	
+	return ComplexityAggregate(totalCC, ccRankAggregrated, unitSizeRankAggregrated);	
 }
 
 public str getCyclomaticMessage(num ccRank){
@@ -329,11 +333,12 @@ Main methdod for testing the cyclomatic complexity and the unit size.
 public void main() {
 	//loc project = |project://smallsql/|;
 	//loc project = |project://hsqldb/|;	
-	loc project = |project://smallsql/|;
+	loc project = |project://hsqldb_small/|;
 	//loc project = |project://Jabberpoint-le3/|;
 	str fileType = "java";		
 	
-	result = getCyclomaticComplexityAndUnitSize(project, fileType);
-	println("<getCyclomaticMessage(result[0])>");
-	println("<getUnitSizeMessage(result[1])>");	
+	ComplexityAggregate result = getCyclomaticComplexityAndUnitSize(project, fileType);
+	println("<result.totalCC>");
+	println("<getCyclomaticMessage(result.cc)>");
+	println("<getUnitSizeMessage(result.unitSize)>");	
 }
