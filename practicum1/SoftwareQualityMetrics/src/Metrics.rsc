@@ -22,34 +22,40 @@ import Complexity;
 **/
 public void main() {
 
-	reportMetrics(|project://hsqldb_small/|);
+	//reportMetrics(|project://hsqldb_small/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);
-	//reportMetrics(|project://hsqldb_small/|);	
+	//reportMetrics(|project://hsqldb_small/|);
+	//reportMetrics(|project://TestApplication/|);	
+	reportMetrics(|project://smallsql/|);	
 }
 
 /**
 	This method reports uoon the metrics for a certain system (project)
 **/
 private void reportMetrics(loc project) {
+	loc logfile = |project://SoftwareQualityMetrics/reports/Metrics.txt|;
+	writeFile(logfile, "Calculation Cyclomatic Complexity And Unit Size\r\n");	
+
 	num totalLOC = Volume::getTotalLOC(project, "java", false);
-	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, "java");
+	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, "java", logfile);
 	DuplicationAggregate duplicationMetricAggregate = Duplication::getDuplication(project, "java");
-	int unitTesting = UnitTesting::getUnitTesting(project, "java", 10000);
+	int unitTesting = UnitTesting::getUnitTesting(project, "java", 10000);	
+
+	str txt = "\r\nMetrics for system: " + project.authority + "\r\n" +
+	"<Threshold::getMetric("Volume", totalLOC/1000, Volume::volumeRanks)> \r\n" +
+	"<Threshold::getMetric("Duplication", (duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, Duplication::duplicationRanks)> \r\n" +  
+	"<Threshold::getMetric("Unit Testing", unitTesting, UnitTesting::unitTestingRanks)> \r\n" +
+	"<Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, Complexity::thresholdTotal)> \r\n" + 
+	"<Threshold::getMetric("Unit size", complexityAggregate.unitSize, Complexity::thresholdTotal)> \r\n";
+
+	appendToFile(logfile, txt);
+	println(txt);	
 	
-	println("Metrics for system: " + project.authority);
-	println(Threshold::getMetric("Volume", totalLOC/1000, Volume::volumeRanks));
-	println(Threshold::getMetric("Duplication", 
-		(duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, Duplication::duplicationRanks)); 
-	println(Threshold::getMetric("Unit Testing", unitTesting, UnitTesting::unitTestingRanks));
-	println(Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, Complexity::thresholdTotal)); 
-	println(Threshold::getMetric("Unit size", complexityAggregate.unitSize, Complexity::thresholdTotal));
-	
-	reportAdditionalInformation(duplicationMetricAggregate);
-	
+	reportAdditionalInformation(duplicationMetricAggregate, logfile);	
 }
 
-private void reportAdditionalInformation(DuplicationAggregate duplicationMetricAggregate) {
+private void reportAdditionalInformation(DuplicationAggregate duplicationMetricAggregate, loc logfile) {
 	int histogramSize = 50;
 	map[int histogramX, tuple[int weight, int duplicated] metric] duplicationCountMap = ();
 	map[int histogramX, int number] weightCountMap = ();
@@ -61,9 +67,9 @@ private void reportAdditionalInformation(DuplicationAggregate duplicationMetricA
 	    weightCountMap = weightCountMap + 
 	    	(getHistogramX(a.weight, histogramSize) : {try weightCountMap[getHistogramX(a.weight, histogramSize)]+1; catch: 1;});
 	};
-
-	println("");
-	println("Lines per file histogram, count and duplication");
+	
+	str txt = "\r\nLines per file histogram, count and duplication\r\n"; 
+	
 	for (histogramX <- [0, histogramSize .. max(domain(duplicationCountMap) + domain(weightCountMap))+1]) {
 		tuple[int weight, int duplicated] v1 = { try duplicationCountMap[histogramX]; catch: <0, 0>;};
 		real w = toReal(v1.weight);
@@ -72,6 +78,9 @@ private void reportAdditionalInformation(DuplicationAggregate duplicationMetricA
 		if ({ try weightCountMap[histogramX]; catch: 0;} == 0 || p ==0) {
 			continue;
 		}
-		println("<histogramX>, <{ try weightCountMap[histogramX]; catch: 0;}>, <p>");
+		txt += "<histogramX>, <{ try weightCountMap[histogramX]; catch: 0;}>, <p>\r\n";
 	};
+	
+	appendToFile(logfile, txt);
+	println(txt);
 }
