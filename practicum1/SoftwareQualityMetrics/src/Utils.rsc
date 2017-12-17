@@ -18,6 +18,8 @@ import String;
 import util::Math;
 
 int MAXINT = 9999999;
+public str FILETYPE = "java";
+
 
 /**
 	Determines the number of newline characters in the string

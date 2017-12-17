@@ -23,7 +23,7 @@ module Duplication
 	Another option could have been used, i.e. creating a sliding window based on a list of strings, where the list is created based on 
 	splitting the source code by using the new line as a separator. But, this would incur a performance penalty (this was tested) as 
 	managing lists is more expensive performance wise than managing simple strings.
-**/
+	**/
 
 import IO;
 import Utils;
@@ -43,8 +43,6 @@ public ThresholdRanks duplicationRanks = [
 	<20, "-">,
 	<Utils::MAXINT, "--">
 ];
-
-data WindowSlider = WindowSlider(int lineIndex, int positionFirstChar, list[int] eoLines, list[int] slice);
 
 private int WINDOW_SIZE = 6;
 private map[loc location, str code] sourcesMap = ();
@@ -254,19 +252,28 @@ public map[loc location, str code] getSourceFiles(loc project, str fileType) {
 }
 
 /**
-	This method tests the getMetrics method
-**/
-public void testGetMetrics() {
-	//getMetric(|project://Jabberpoint/|, "java", 10000);
-	//getMetric(|project://TestSoftwareQualityMetrics/|, "java", 10000);
-	//getMetric(|project://smallsql/|, "java", 10000);
-	println(getDuplication(|project://TestSoftwareQualityMetrics/|, "java"));
-	//getMetric(|project://hsqldb/|, "java", 10000);
-}
-
-/**
-	Run tests
+	Tests the getDuplication method
 **/
 public void main() {
-	testGetMetrics();
+	println("Duplication test");
+	DuplicationAggregate duplicationAggregate = getDuplication(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE);
+	println(duplicationAggregate);
+	if (size(duplicationAggregate.metrics) == 3) {
+		println("total number units as expected");
+	}
+	else {
+		println("total number units NOT as expected");
+	}
+	if (duplicationAggregate.totalWeight == 104) {
+		println("total number of lines as expected");
+	}
+	else {
+		println("total number of lines NOT as expected");
+	}
+	if (duplicationAggregate.totalMetric == 48) {
+		println("total number of duplicated lines as expected");
+	}
+	else {
+		println("total number of duplicated lines NOT as expected");
+	}
 }

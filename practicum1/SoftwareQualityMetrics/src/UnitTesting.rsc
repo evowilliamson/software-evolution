@@ -30,24 +30,46 @@ public ThresholdRanks unitTestingRanks = [
 	<Utils::MAXINT, "++">
 ];
 
+/**
+	Returns the unit test coverage. This is defined as the number of assert statements
+	divided by the totalCC * 100
+	@loc the location
+	returns: the % test case coverage
+**/
 public int getUnitTesting(loc project, str fileType, int totalCC) {
 	return (getNumberOfAssertStatements(project)/totalCC)*100;
 }
 
+/**
+	This method retrieves the number of assert statements found in the project
+	@loc the location
+	returns: the number of assert statements found
+**/
 private int getNumberOfAssertStatements(loc project) {
 	int numberOfAsserts = 0;
 
-	set[Declaration] declarations = createAstsFromEclipseProject(project, true);
-	visit(declarations){
-    	case Declaration x:class(_, /simpleName(a), _, body) : {
-    		visit(body) {
-    			case /System/ : numberOfAsserts += 1;
-    		}
-    	}
+	M3 m3 = createM3FromEclipseProject(project);
+	int result = 0;
+	for(method <- methods(m3)){
+		methodAst = getMethodASTEclipse(method, model = m3);	
+		 visit (methodAst) {
+        	case \assert(_) : result += 1;
+        	case \assert(_,_) : result += 1;
+	    }	
 	}
-	return numberOfAsserts;
+	return result;
 }
 
+/**
+	Test the getUnitTesting method
+**/
 public void main() {
-	println(getUnitTesting(|project://Jabberpoint/|, "java", 10000));
+	int asserts = getUnitTesting(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE, 3);
+	println(asserts);
+	if (asserts == 100) {
+		println("Number of tests as expected");
+	}
+	else {
+		println("Number of tests NOT as expected");
+	}
 }

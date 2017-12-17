@@ -40,5 +40,12 @@ public int getTotalLOC(loc location, str fileType, bool removeImports) {
 	Calls the test methods
 **/
 public void main() {
-	testFilterCode();
+	int totalLOC = getTotalLOC(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE, true);
+	println(totalLOC);
+	if (totalLOC == 104) {
+		println("Total number of lines of code as expected");
+	}
+	else {
+		println("Total number of lines of code NOT as expected");
+	}
 }
