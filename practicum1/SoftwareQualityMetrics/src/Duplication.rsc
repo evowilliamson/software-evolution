@@ -35,6 +35,7 @@ import Volume;
 import DateTime;
 import Types;
 import Set;
+import Logger;
 
 public ThresholdRanks duplicationRanks = [
 	<3, "++">,
@@ -66,6 +67,8 @@ public DuplicationAggregate getDuplication(loc location, str fileType) {
 	"true" in the following method call. **/
 	int totalLOC = Volume::getTotalLOC(location, fileType, true);
 	int totalDuplicatedLines = 0;
+
+	Logger::doLog("Duplication calculation"); 
 	
 	list[tuple[int weight, int metric]] metricsPerUnit = [];
 	// Get all sources and store it together with the location in a list
@@ -74,7 +77,9 @@ public DuplicationAggregate getDuplication(loc location, str fileType) {
 		int duplicatedLines = getDuplicationPerFile(source, sourcesMap[source]); 
 		totalDuplicatedLines += duplicatedLines;
 		metricsPerUnit = metricsPerUnit + <Utils::getLOCForSourceFile(source, true), duplicatedLines>;
+		Logger::doLog("Source: <source.file>, LOC duplicated: <duplicatedLines>"); 
 	};
+	Logger::doLog("Total lines: <totalLOC>, total duplicated lines: <totalDuplicatedLines>"); 
 	return DuplicationAggregate(totalLOC, totalDuplicatedLines, metricsPerUnit);
 }
 
@@ -257,23 +262,22 @@ public map[loc location, str code] getSourceFiles(loc project, str fileType) {
 public void main() {
 	println("Duplication test");
 	DuplicationAggregate duplicationAggregate = getDuplication(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE);
-	println(duplicationAggregate);
 	if (size(duplicationAggregate.metrics) == 3) {
-		println("total number units as expected");
+		Logger::doLog("total number units as expected");
 	}
 	else {
-		println("total number units NOT as expected");
+		Logger::doLog("total number units NOT as expected");
 	}
 	if (duplicationAggregate.totalWeight == 104) {
-		println("total number of lines as expected");
+		Logger::doLog("total number of lines as expected");
 	}
 	else {
-		println("total number of lines NOT as expected");
+		Logger::doLog("total number of lines NOT as expected");
 	}
 	if (duplicationAggregate.totalMetric == 48) {
-		println("total number of duplicated lines as expected");
+		Logger::doLog("total number of duplicated lines as expected");
 	}
 	else {
-		println("total number of duplicated lines NOT as expected");
+		Logger::doLog("total number of duplicated lines NOT as expected");
 	}
 }

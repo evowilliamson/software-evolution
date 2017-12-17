@@ -19,14 +19,17 @@ import Map;
 import Set;
 import Complexity;
 import lang::csv::IO; 
+import Logger;
 
 /**
 	Main method of metrics system
 **/
 public void main() {
 
+	Logger::activateToFile();
+
 	//reportMetrics(|project://smallsql/|);
-	reportMetrics(|project://hsqldb/|);
+	reportMetrics(|project://TestSoftwareQualityMetrics/|);
 	//reportMetrics(|project://TestSoftwareQualityMetrics/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);
@@ -38,19 +41,19 @@ public void main() {
 	@project the project
 **/
 private void reportMetrics(loc project) {
+
 	num totalLOC = Volume::getTotalLOC(project, Utils::FILETYPE, false);
 	int unitTesting = UnitTesting::getUnitTesting(project, Utils::FILETYPE, 10000);
 	
 	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, Utils::FILETYPE);
 	DuplicationAggregate duplicationMetricAggregate = Duplication::getDuplication(project, Utils::FILETYPE);
 	
-	println("Metrics for system: " + project.authority);
-	println(Threshold::getMetric("Volume", totalLOC/1000, Volume::volumeRanks));
-	println(Threshold::getMetric("Unit Testing", unitTesting, UnitTesting::unitTestingRanks));
-	println(Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, Complexity::thresholdTotal)); 
-	println(Threshold::getMetric("Unit size", complexityAggregate.unitSize, Complexity::thresholdTotal));
-	println(Threshold::getMetric("Duplication", 
-		(duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, Duplication::duplicationRanks)); 
+	Logger::doLog("\r\nMetrics for system: " + project.authority + "\r\n" + 
+		"<Threshold::getMetric("Volume", totalLOC/1000, Volume::volumeRanks)> \r\n" + 
+		"<Threshold::getMetric("Duplication", (duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, Duplication::duplicationRanks)> \r\n" +   
+		"<Threshold::getMetric("Unit Testing", unitTesting, UnitTesting::unitTestingRanks)> \r\n" + 
+		"<Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, Complexity::thresholdTotal)> \r\n" +  
+		"<Threshold::getMetric("Unit size", complexityAggregate.unitSize, Complexity::thresholdTotal)> \r\n"); 
 
 	reportAdditionalDuplicationInformation(duplicationMetricAggregate);
 	reportAdditionalComplexityInformation(complexityAggregate);

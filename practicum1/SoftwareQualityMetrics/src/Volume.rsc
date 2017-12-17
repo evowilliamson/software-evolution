@@ -10,6 +10,7 @@ import Utils;
 import util::Math;
 import IO;
 import util::Resources;
+import Logger;
 
 public ThresholdRanks volumeRanks = [
 	<66, "++">,
@@ -41,11 +42,11 @@ public int getTotalLOC(loc location, str fileType, bool removeImports) {
 **/
 public void main() {
 	int totalLOC = getTotalLOC(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE, true);
-	println(totalLOC);
+	Logger::doLog(totalLOC);
 	if (totalLOC == 104) {
-		println("Total number of lines of code as expected");
+		Logger::doLog("Total number of lines of code as expected");
 	}
 	else {
-		println("Total number of lines of code NOT as expected");
+		Logger::doLog("Total number of lines of code NOT as expected");
 	}
 }

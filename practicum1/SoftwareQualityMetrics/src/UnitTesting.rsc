@@ -21,6 +21,7 @@ import IO;
 import Set;
 import Threshold;
 import Utils;
+import Logger;
 
 public ThresholdRanks unitTestingRanks = [
 	<20, "--">,
@@ -65,11 +66,11 @@ private int getNumberOfAssertStatements(loc project) {
 **/
 public void main() {
 	int asserts = getUnitTesting(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE, 3);
-	println(asserts);
+	Logger::doLog(asserts);
 	if (asserts == 100) {
-		println("Number of tests as expected");
+		Logger::doLog("Number of tests as expected");
 	}
 	else {
-		println("Number of tests NOT as expected");
+		Logger::doLog("Number of tests NOT as expected");
 	}
 }

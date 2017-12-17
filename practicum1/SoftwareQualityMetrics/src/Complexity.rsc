@@ -22,6 +22,7 @@ import util::Benchmark;
 import Types;
 import Utils;
 import Threshold;
+import Logger;
 
 str METRIC_NAME = "Complexity";
 
@@ -171,9 +172,8 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 
 	M3 m3 = createM3FromEclipseProject(project);
 	
-	println("");
-	println("Start calculating Cyclomatic Complexity and Unit size");
-	println("Walk through all methods");
+	Logger::doLog("Start calculating Cyclomatic Complexity and Unit size");
+	Logger::doLog("Walk through all methods");
 	
 	list[tuple[int size, int complexity]] metrics = [];
 	//Select all methods of the M3 object
@@ -183,7 +183,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 				
 		//Get LOC of method
 		int locMethod = getLOCForSourceFile(method);
-		println(locMethod);
+		Logger::doLog(locMethod);
 		locTotal += locMethod;
 				
 		//Determine CC of the method
@@ -210,7 +210,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 			default: locUnitSizeSimple += locMethod;
 		}
 		
-		println("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");			
+		Logger::doLog("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");			
 		metrics = metrics + <locMethod, cc>;		
 	}
 	
@@ -242,13 +242,13 @@ private num calculateCCRank(num totalProjectLOC, real locSimple, real locModerat
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	println("CC loc Total methods: <locTotal>, loc Simple: (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+	Logger::doLog("CC loc Total methods: <locTotal>, loc Simple: (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 			
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdCCModerate);
 	int rankHigh = getRankNum(highLocPerc, thresholdCCHigh);
 	int rankVeryHigh = getRankNum(veryHighLocPerc, thresholdCCVeryHigh);
-	println("CC rank moderate: <getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)");
+	Logger::doLog("CC rank moderate: <getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)");
 	
 	//Calculate the aggregrated risk level
 	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);	
@@ -267,13 +267,13 @@ private num calculateUnitSizeRank(num totalProjectLOC, real locSimple, real locM
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	println("Unit Size loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+	Logger::doLog("Unit Size loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdUnitSizeModerate);
 	int rankHigh = getRankNum(highLocPerc, thresholdUnitSizeHigh);
 	int rankVeryHigh = getRankNum(veryHighLocPerc, thresholdUnitSizeVeryHigh);
-	println("Unit Size rank moderate: <getRank(moderateLocPerc, thresholdUnitSizeModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdUnitSizeHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdUnitSizeVeryHigh)> (<rankVeryHigh>)");
+	Logger::doLog("Unit Size rank moderate: <getRank(moderateLocPerc, thresholdUnitSizeModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdUnitSizeHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdUnitSizeVeryHigh)> (<rankVeryHigh>)");
 	
 	//Calculate the aggregrated risk level
 	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);		
@@ -289,9 +289,7 @@ private num calculateUnitSizeRank(num totalProjectLOC, real locSimple, real locM
  >50: very high
 **/
 private str getCCRank(int cc){		
-	str rank = getRank(cc, thresholdCCUnit);
-	//println("cc <cc> - <rank>");
-	return rank;
+	return getRank(cc, thresholdCCUnit);
 }
 
 /**
@@ -333,19 +331,18 @@ private int calcCCAst(methodAst) {
 	Main methdod for testing the cyclomatic complexity and the unit size.
 **/
 public void main() {
-	println("Complexity test");
+	Logger::doLog("Complexity test");
 	ComplexityAggregate complexityAggregate = getCyclomaticComplexityAndUnitSize(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE);
-	println(complexityAggregate);
 	if (complexityAggregate.totalCC == 23) {
-		println("total number of CC as expected");
+		Logger::doLog("total number of CC as expected");
 	}
 	else {
-		println("total number of CC NOT as expected");
+		Logger::doLog("total number of CC NOT as expected");
 	}
 	if (size(complexityAggregate.metrics) == 12) {
-		println("total number units as expected");
+		Logger::doLog("total number units as expected");
 	}
 	else {
-		println("total number units NOT as expected");
+		Logger::doLog("total number units NOT as expected");
 	}	
 }
