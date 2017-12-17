@@ -47,8 +47,8 @@ private void reportMetrics(loc project) {
 	num totalLOC = Volume::getTotalLOC(project, Utils::FILETYPE, false);
 	int unitTesting = UnitTesting::getUnitTesting(project, Utils::FILETYPE, 10000);
 	
-	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, Utils::FILETYPE);
 	DuplicationAggregate duplicationMetricAggregate = Duplication::getDuplication(project, Utils::FILETYPE);
+	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, Utils::FILETYPE);
 	
 	Logger::doLog("\r\nMetrics for system: " + project.authority + "\r\n" + 
 		"<Threshold::getMetric("Volume", totalLOC/1000, Volume::volumeRanks)> \r\n" + 
