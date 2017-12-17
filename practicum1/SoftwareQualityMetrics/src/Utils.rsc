@@ -81,14 +81,6 @@ private set[loc] getSourceFilesInLocation(loc location, str fileType) {
 }
 
 /**
-	Get histogram X value
-**/
-public int getHistogramX(int x, int bucketSize) {
-	real r = x / toReal(bucketSize);
-	return floor(r+1) * bucketSize;
-}
-
-/**
 	This method removes empty lines from the source code
 	@str the input string
 	returns: the source code that does not contain empty lines
@@ -108,8 +100,7 @@ private str removeEmptyLines(str input) {
 	@input 
 		the input that should be filtered
 	@removeImports
-		In case duplication is run, the TLOC should be calculated without import statements in order to get
-		good %
+		In case duplication is run, the TLOC should be calculated without import statements 
 	returns: the filtered code
 **/
 private str filterCode(str input, bool removeImports) {
@@ -129,26 +120,6 @@ private str filterCode(str input, bool removeImports) {
 }
 
 /**
-	Import statements should be removed. But invocation 
-	to methods that end in "import" should not be removed
-**/
-private str removeImportsStatements(str input) {
-	return  visit(input) {
-       case /(?!import[\s]*\(.*)[\s]*?import[\s]+?.*/ => ""    
-    };
- }
-
-/**
-	This methods tests the removeImports method
-**/
-private void testRemoveImportsStatements() {
-	str s = "import bla \n import blabla\nfkjdfkdjf kfjf dkfd\nkfdjfkdf\nfjkdsjfkd;\n fff import fjdkfjkdf \n\n import(bla) \njfkdjfkd";
-	println(s);
-	println("Converted: ");
-	println(removeImports(s));
-}
-
-/**
 	This method tests the filterCode method
 **/
 private void testFilterCode() {
@@ -162,6 +133,5 @@ private void testFilterCode() {
 	Calls the test methods
 **/
 public void main() {
- 	testRemoveImportsStatements();
- 	//testFilterCode();
+ 	testFilterCode();
 }

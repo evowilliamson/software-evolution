@@ -23,6 +23,13 @@ module Duplication
 	Another option could have been used, i.e. creating a sliding window based on a list of strings, where the list is created based on 
 	splitting the source code by using the new line as a separator. But, this would incur a performance penalty (this was tested) as 
 	managing lists is more expensive performance wise than managing simple strings.
+	
+	This metric is determined by applying the following preprocessing steps:
+	1. Remove block comments
+	2. Remove single line comments
+	3. Removing white space
+	4. Removing empty lines
+	5. Removing import statements
 	**/
 
 import IO;

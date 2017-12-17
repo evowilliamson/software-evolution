@@ -26,7 +26,6 @@ import Logger;
 **/
 public void main() {
 
-
 	reportMetrics(|project://smallsql/|);
 	//reportMetrics(|project://TestSoftwareQualityMetrics/|);
 	//reportMetrics(|project://core/|);
@@ -132,4 +131,12 @@ private void reportAdditionalComplexityInformation(ComplexityAggregate complexit
 	};
 	writeCSV(sizePerUnitToCountCSV, |file:///temp/sizePerUnitToCount.csv|);
 
+}
+
+/**
+	Get histogram X value bucket
+**/
+public int getHistogramX(int x, int bucketSize) {
+	real r = x / toReal(bucketSize);
+	return floor(r+1) * bucketSize;
 }

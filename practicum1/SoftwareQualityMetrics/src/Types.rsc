@@ -1,6 +1,7 @@
 module Types
 
 /**
+	@author Ivo Willemsen
 	Contains the user defined types that are used by the application
 **/
 

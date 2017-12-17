@@ -2,7 +2,12 @@ module Volume
 
 /**
 	@author Ivo Willemsen
-	This module contains a public method to determine the volume metric 
+	This module contains a public method to determine the volume metric. 
+	This metric is determined by applying the following preprocessing steps:
+	1. Remove block comments
+	2. Remove single line comments
+	3. Removing white space
+	4. Removing empty lines
 **/
 
 import Threshold;
