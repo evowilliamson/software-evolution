@@ -34,6 +34,7 @@ import Map;
 import Volume;
 import DateTime;
 import Types;
+import Set;
 
 public ThresholdRanks duplicationRanks = [
 	<3, "++">,
@@ -68,19 +69,14 @@ public DuplicationAggregate getDuplication(loc location, str fileType) {
 	int totalLOC = Volume::getTotalLOC(location, fileType, true);
 	int totalDuplicatedLines = 0;
 	
-	set[tuple[int weight, int metric]] metricsPerUnit = {};
+	list[tuple[int weight, int metric]] metricsPerUnit = [];
 	// Get all sources and store it together with the location in a list
 	sourcesMap = getSourceFiles(location, fileType);
 	for (source <- sourcesMap) {
-		/*if (source.file != "ExpressionFunctionDifference.java") {
-			continue;
-		};*/
-	
 		int duplicatedLines = getDuplicationPerFile(source, sourcesMap[source]); 
 		totalDuplicatedLines += duplicatedLines;
 		metricsPerUnit = metricsPerUnit + <Utils::getLOCForSourceFile(source, true), duplicatedLines>;
 	};
-	
 	return DuplicationAggregate(totalLOC, totalDuplicatedLines, metricsPerUnit);
 }
 
@@ -264,7 +260,7 @@ public void testGetMetrics() {
 	//getMetric(|project://Jabberpoint/|, "java", 10000);
 	//getMetric(|project://TestSoftwareQualityMetrics/|, "java", 10000);
 	//getMetric(|project://smallsql/|, "java", 10000);
-	println(getDuplication(|project://hsqldb_small/|, "java"));
+	println(getDuplication(|project://TestSoftwareQualityMetrics/|, "java"));
 	//getMetric(|project://hsqldb/|, "java", 10000);
 }
 

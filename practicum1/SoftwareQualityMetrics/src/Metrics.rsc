@@ -23,35 +23,47 @@ import lang::csv::IO;
 **/
 public void main() {
 
-	//reportMetrics(|project://smallsql/|);
+	//reportMetrics(|project://TestSoftwareQualityMetrics/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);
-	reportMetrics(|project://hsqldb_small/|);	
+	//reportMetrics(|project://hsqldb_small/|);	
+	reportMetrics(|project://smallsql/|);
 }
 
 /**
 	This method reports uoon the metrics for a certain system (project)
+	@project the project
 **/
 private void reportMetrics(loc project) {
-	num totalLOC = Volume::getTotalLOC(project, "java", false);
-	int unitTesting = UnitTesting::getUnitTesting(project, "java", 10000);
+//	num totalLOC = Volume::getTotalLOC(project, "java", false);
+	//int unitTesting = UnitTesting::getUnitTesting(project, "java", 10000);
 
-	DuplicationAggregate duplicationMetricAggregate = Duplication::getDuplication(project, "java");
+	
 	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, "java");
 	
-	println("Metrics for system: " + project.authority);
+	/*println("Metrics for system: " + project.authority);
 	println(Threshold::getMetric("Volume", totalLOC/1000, Volume::volumeRanks));
-	println(Threshold::getMetric("Duplication", 
-		(duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, Duplication::duplicationRanks)); 
 	println(Threshold::getMetric("Unit Testing", unitTesting, UnitTesting::unitTestingRanks));
 	println(Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, Complexity::thresholdTotal)); 
-	println(Threshold::getMetric("Unit size", complexityAggregate.unitSize, Complexity::thresholdTotal));
+	println(Threshold::getMetric("Unit size", complexityAggregate.unitSize, Complexity::thresholdTotal));*/
 
-	reportAdditionalInformation(duplicationMetricAggregate, complexityAggregate);
+
+/*	DuplicationAggregate duplicationMetricAggregate = Duplication::getDuplication(project, "java");
+	println(duplicationMetricAggregate);
+	println(Threshold::getMetric("Duplication", 
+		(duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, Duplication::duplicationRanks));*/ 
+
+	//reportAdditionalDuplicationInformation(duplicationMetricAggregate);
+	reportAdditionalComplexityInformation(complexityAggregate);
 	
 }
 
-private void reportAdditionalInformation(DuplicationAggregate duplicationMetricAggregate, ComplexityAggregate complexityAggregate) {
+/**
+	This methods reports on additional information regarding duplication. Data for historgrams
+	are generated and written to CSV files.
+	@duplicationMetricAggregate aggregate duplication metrics
+**/
+private void reportAdditionalDuplicationInformation(DuplicationAggregate duplicationMetricAggregate ) {
 	int histogramSize = 50;
 	println("");
 	println("Lines per file histogram, count and duplication");
@@ -98,9 +110,12 @@ private void reportAdditionalInformation(DuplicationAggregate duplicationMetricA
 	};
 	writeCSV(percentageDuplicationToCountCSV, |file:///tmp/percentageDuplicationToCount.csv|);
 
+}
+
+private void reportAdditionalComplexityInformation(ComplexityAggregate complexityAggregate) {
+	int histogramSize = 3;
 	println("");
 	println("McCabe, number of units:");
-	histogramSize = 10;
 	map[int histogramX, int number] mcCabeToCountMap = ();
 	for (a <- complexityAggregate.metrics) {
 		int histogramX = getHistogramX(a.complexity, histogramSize);
@@ -118,7 +133,7 @@ private void reportAdditionalInformation(DuplicationAggregate duplicationMetricA
 
 	println("");
 	println("Size per unit, number of units:");
-	histogramSize = 10;
+	histogramSize = 3;
 	map[int histogramX, int number] sizePerUnitToCount = ();
 	for (a <- complexityAggregate.metrics) {
 		int histogramX = getHistogramX(a.size, histogramSize);

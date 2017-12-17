@@ -176,7 +176,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 	println("Start calculating Cyclomatic Complexity and Unit size");
 	println("Walk through all methods");
 	
-	set[tuple[int size, int complexity]] metrics = {};
+	list[tuple[int size, int complexity]] metrics = [];
 	//Select all methods of the M3 object
 	for(method <- methods(m3)){
 		//Get AST of method		
@@ -212,7 +212,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 		}
 		
 		println("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");			
-		metrics = metrics + <cc, locMethod>;		
+		metrics = metrics + <locMethod, cc>;		
 	}
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 
@@ -336,7 +336,7 @@ Main methdod for testing the cyclomatic complexity and the unit size.
 public void main() {
 	//loc project = |project://smallsql/|;
 	//loc project = |project://hsqldb/|;	
-	loc project = |project://hsqldb_small/|;
+	loc project = |project://TestSoftwareQualityMetrics/|;
 	//loc project = |project://Jabberpoint-le3/|;
 	str fileType = "java";		
 	
