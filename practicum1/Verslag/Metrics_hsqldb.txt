@@ -20854,7 +20854,6 @@ Source: TarReader.java, LOC duplicated: 36
 Source: JDBCColumnMetaData.java, LOC duplicated: 6
 Source: RefCapablePropertyResourceBundle.java, LOC duplicated: 24
 Source: JDBCCallableStatement.java, LOC duplicated: 78
-Total lines: 158908, total duplicated lines: 23364
 
 Metrics for system: hsqldb
 <"Volume",163.205,"+"> 

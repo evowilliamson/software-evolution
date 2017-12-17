@@ -41,6 +41,10 @@ public int getUnitTesting(loc project, str fileType, int totalCC) {
 	return (getNumberOfAssertStatements(project)/totalCC)*100;
 }
 
+public int getUnitTesting2(loc project, str fileType, int totalCC) {
+	return (getNumberOfAssertStatements(project)/totalCC)*100;
+}
+
 /**
 	This method retrieves the number of assert statements found in the project
 	@loc the location
@@ -58,6 +62,15 @@ private int getNumberOfAssertStatements(loc project) {
         	case \assert(_,_) : result += 1;
 	    }	
 	}
+	return result;
+}
+
+private int getNumberOfAssertStatements2(loc project) {
+	int numberOfAsserts = 0;
+
+	sourcesMap = getSourceFiles(location, "java");
+	for (source <- sourcesMap) {
+	};
 	return result;
 }
 

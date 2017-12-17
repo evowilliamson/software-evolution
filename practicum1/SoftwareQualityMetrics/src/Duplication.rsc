@@ -79,7 +79,6 @@ public DuplicationAggregate getDuplication(loc location, str fileType) {
 		metricsPerUnit = metricsPerUnit + <Utils::getLOCForSourceFile(source, true), duplicatedLines>;
 		Logger::doLog("Source: <source.file>, LOC duplicated: <duplicatedLines>"); 
 	};
-	Logger::doLog("Total lines: <totalLOC>, total duplicated lines: <totalDuplicatedLines>"); 
 	return DuplicationAggregate(totalLOC, totalDuplicatedLines, metricsPerUnit);
 }
 

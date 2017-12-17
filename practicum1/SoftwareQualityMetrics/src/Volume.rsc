@@ -41,8 +41,12 @@ public int getTotalLOC(loc location, str fileType, bool removeImports) {
 	Calls the test methods
 **/
 public void main() {
-	int totalLOC = getTotalLOC(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE, true);
-	Logger::doLog(totalLOC);
+	int totalLOCDupNotRem = getTotalLOC(|project://smallsql/|, Utils::FILETYPE, false);
+	int totalLOCDupRem = getTotalLOC(|project://smallsql/|, Utils::FILETYPE, true);
+	Logger::doLog("false");
+	Logger::doLog(totalLOCDupNotRem);
+	Logger::doLog("true");
+	Logger::doLog(totalLOCDupRem);
 	if (totalLOC == 104) {
 		Logger::doLog("Total number of lines of code as expected");
 	}
