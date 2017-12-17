@@ -49,10 +49,6 @@ public void doLog(int theValue) {
 	doLog(toString(theValue));
 }
 
-public void doLog(num val1, num val2) {
-	doLog(toString(val1) + ", " + toString(val2));
-}
-
 /**
 	This method activates logging to the console
 **/
