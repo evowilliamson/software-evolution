@@ -156,7 +156,7 @@ private ThresholdRanksEx thresholdLocUnitSize = [
 Calsulates the cyclomatic complexity (cc) an the unit size (us) for every method and 
 aggegrates the cc and uc into one value for cc and one value for us.  
 **/
-public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str fileType, loc logfile) {
+public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str fileType) {
 	real locTotal = 0.0;
 	real locCCSimple = 0.0;
 	real locCCModerate = 0.0;
@@ -183,6 +183,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 				
 		//Get LOC of method
 		int locMethod = getLOCForSourceFile(method);
+		println(locMethod);
 		locTotal += locMethod;
 				
 		//Determine CC of the method
@@ -209,30 +210,21 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 			default: locUnitSizeSimple += locMethod;
 		}
 		
-		str logStr = "Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>";
-		println(logStr);			
-		appendToFile(logfile, "<logStr>\r\n");					
-		metrics = metrics + <cc, locMethod>;		
+		println("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");					
 	}
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 
-	num ccRankAggregrated = calculateCCRank(locTotal, locCCSimple, locCCModerate, locCCHigh, locCCVeryHigh, logfile);
-	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locUnitSizeSimple, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh, logfile);
+	num ccRankAggregrated = calculateCCRank(locTotal, locCCSimple, locCCModerate, locCCHigh, locCCVeryHigh);
+	num unitSizeRankAggregrated = calculateUnitSizeRank(locTotal, locUnitSizeSimple, locUnitSizeModerate, locUnitSizeHigh, locUnitSizeVeryHigh);
 				
 	return ComplexityAggregate(totalCC, ccRankAggregrated, unitSizeRankAggregrated);	
 }
 
-/**
-Get a message about clyclomatic complexicty  
-**/
 public str getCyclomaticMessage(num ccRank){
 	rank = getRank(ccRank, thresholdTotal);	
 	return "Cyclomatic complexity: <rank>";
 }
 
-/**
-Get a message about the unit size
-**/
 public str getUnitSizeMessage(num unitSizeRank){
 	str rank = getRank(unitSizeRank, thresholdTotal);	
 	return "Unit size: <rank>";
@@ -242,24 +234,20 @@ public str getUnitSizeMessage(num unitSizeRank){
 Calculate the ccyclomatic complexity rank number. 
 Remark: Use the threshold thresholdCCTotal to get the cc text representation 
 **/
-private num calculateCCRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh, loc logfile){
+private num calculateCCRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh){
 	//Calculate the percentages of LOC per risk level
 	locTotal = toReal(totalProjectLOC);
 	real simpleLocPerc = (locSimple/locTotal) * 100;
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	str logStr = "CC loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)";
-	println(logStr);
-	appendToFile(logfile, "<logStr>\r\n");	
+	println("CC loc Total methods: <locTotal>, loc Simple: (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 			
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdCCModerate);
 	int rankHigh = getRankNum(highLocPerc, thresholdCCHigh);
 	int rankVeryHigh = getRankNum(veryHighLocPerc, thresholdCCVeryHigh);
-
-	logStr = "CC rank moderate: <getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)";
-	appendToFile(logfile, "<logStr>\r\n");
+	println("CC rank moderate: <getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)");
 	
 	//Calculate the aggregrated risk level
 	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);	
@@ -271,24 +259,20 @@ private num calculateCCRank(num totalProjectLOC, real locSimple, real locModerat
 Calculate the unit size rank. 
 Remark: Use the threshold thresholdUnitSize to get the unit size string representation
 **/
-private num calculateUnitSizeRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh, loc logfile){
+private num calculateUnitSizeRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh){
 	//Calculate the percentages of LOC per risk level
 	locTotal = toReal(totalProjectLOC);
 	real simpleLocPerc = (locSimple/locTotal) * 100;
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	str logStr = "Unit Size loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)";
-	println(logStr);
-	appendToFile(logfile, "<logStr>\r\n");	
+	println("Unit Size loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdUnitSizeModerate);
 	int rankHigh = getRankNum(highLocPerc, thresholdUnitSizeHigh);
 	int rankVeryHigh = getRankNum(veryHighLocPerc, thresholdUnitSizeVeryHigh);
-	logStr = "Unit Size rank moderate: <getRank(moderateLocPerc, thresholdUnitSizeModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdUnitSizeHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdUnitSizeVeryHigh)> (<rankVeryHigh>)";
-	println();
-	appendToFile(logfile, "<logStr>\r\n");
+	println("Unit Size rank moderate: <getRank(moderateLocPerc, thresholdUnitSizeModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdUnitSizeHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdUnitSizeVeryHigh)> (<rankVeryHigh>)");
 	
 	//Calculate the aggregrated risk level
 	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);		
@@ -350,15 +334,11 @@ Main methdod for testing the cyclomatic complexity and the unit size.
 public void main() {
 	//loc project = |project://smallsql/|;
 	//loc project = |project://hsqldb/|;	
-	//loc project = |project://hsqldb_small/|;
+	loc project = |project://hsqldb_small/|;
 	//loc project = |project://Jabberpoint-le3/|;
-	loc project = |project://TestApplication/|;
 	str fileType = "java";		
 	
-	loc logfile = |project://SoftwareQualityMetrics/reports/ComplexityAndUniSize.txt|;
-	writeFile(logfile, "Calculation Cyclomatic Complexity And Unit Size\r\n");	
-		
-	ComplexityAggregate result = getCyclomaticComplexityAndUnitSize(project, fileType, logfile);
+	ComplexityAggregate result = getCyclomaticComplexityAndUnitSize(project, fileType);
 	println("<result.totalCC>");
 	println("<getCyclomaticMessage(result.cc)>");
 	println("<getUnitSizeMessage(result.unitSize)>");	

@@ -211,8 +211,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 		
 		str logStr = "Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>";
 		println(logStr);			
-		appendToFile(logfile, "<logStr>\r\n");					
-		metrics = metrics + <cc, locMethod>;		
+		appendToFile(logfile, "<logStr>\r\n");		
 	}
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 

@@ -68,7 +68,7 @@ public DuplicationAggregate getDuplication(loc location, str fileType) {
 	int totalLOC = Volume::getTotalLOC(location, fileType, true);
 	int totalDuplicatedLines = 0;
 	
-	set[tuple[str unit, int weight, int metric]] metricsPerUnit = {};
+	set[tuple[int weight, int metric]] metricsPerUnit = {};
 	// Get all sources and store it together with the location in a list
 	sourcesMap = getSourceFiles(location, fileType);
 	for (source <- sourcesMap) {
@@ -78,7 +78,7 @@ public DuplicationAggregate getDuplication(loc location, str fileType) {
 	
 		int duplicatedLines = getDuplicationPerFile(source, sourcesMap[source]); 
 		totalDuplicatedLines += duplicatedLines;
-		metricsPerUnit = metricsPerUnit + <source.file, Utils::getLOCForSourceFile(source, true), duplicatedLines>;
+		metricsPerUnit = metricsPerUnit + <Utils::getLOCForSourceFile(source, true), duplicatedLines>;
 	};
 	
 	return DuplicationAggregate(totalLOC, totalDuplicatedLines, metricsPerUnit);
