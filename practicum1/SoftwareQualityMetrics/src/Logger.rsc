@@ -15,13 +15,12 @@ private bool initialized = false;
 /**
 	This method is called when the log system has not been initialized before
 **/
-private void initialize() {
-	str initString = "Software Qualtity Metrics calculation\r\n";
+private void initialize(str initString) {
 	if (logToFile) {
-		writeFile(logfile, initString);
+		writeFile(logfile, initString + "\r\n");
 		initialized = true;
 	}
-	if (logToFile) {
+	if (logToConsole) {
 		println(initString);
 		initialized = true;
 	}
@@ -32,13 +31,15 @@ private void initialize() {
 **/
 public void doLog(str theString) {
 	if (!initialized) {
-		initialize();
+		initialize(theString);
 	}
-	if (logToConsole) {
-		println(theString);
-	}
-	if (logToFile) {
-		appendToFile(logfile, theString + "\r\n");
+	else {
+		if (logToConsole) {
+			println(theString);
+		}
+		if (logToFile) {
+			appendToFile(logfile, theString + "\r\n");
+		}
 	}
 }
 

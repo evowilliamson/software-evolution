@@ -1,4 +1,4 @@
-Software Qualtity Metrics calculation
+Calculation of Software Quality Metrics for system: TestSoftwareQualityMetrics
 Start calculating Cyclomatic Complexity and Unit size
 Walk through all methods
 2

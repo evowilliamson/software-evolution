@@ -26,14 +26,13 @@ import Logger;
 **/
 public void main() {
 
-	Logger::activateToFile();
 
 	//reportMetrics(|project://smallsql/|);
 	reportMetrics(|project://TestSoftwareQualityMetrics/|);
-	//reportMetrics(|project://TestSoftwareQualityMetrics/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);
 	//reportMetrics(|project://hsqldb_small/|);	
+	//reportMetrics(|project://hsqldb/|);
 }
 
 /**
@@ -41,6 +40,9 @@ public void main() {
 	@project the project
 **/
 private void reportMetrics(loc project) {
+
+	Logger::activateToFile();
+	Logger::doLog("Calculation of Software Quality Metrics for system: <project.authority>"); 
 
 	num totalLOC = Volume::getTotalLOC(project, Utils::FILETYPE, false);
 	int unitTesting = UnitTesting::getUnitTesting(project, Utils::FILETYPE, 10000);
