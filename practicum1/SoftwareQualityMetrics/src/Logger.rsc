@@ -5,7 +5,7 @@ import util::Math;
 
 /**
 	@author Ivo Willemsen
-	Log module that provides functionlity to log to console or a file
+	Log module that provides functionality to log to console or a file
 **/
 private loc logfile = |project://SoftwareQualityMetrics/reports/Metrics.txt|; 
 private bool logToFile = false;
@@ -16,12 +16,13 @@ private bool initialized = false;
 	This method is called when the log system has not been initialized before
 **/
 private void initialize() {
+	str initString = "Software Qualtity Metrics calculation\r\n";
 	if (logToFile) {
-		writeFile(logfile, "Software Qualtity Metrics calculation\r\n");
+		writeFile(logfile, initString);
 		initialized = true;
 	}
 	if (logToFile) {
-		println("Software Qualtity Metrics calculation\r\n");
+		println(initString);
 		initialized = true;
 	}
 }
