@@ -27,8 +27,8 @@ import Logger;
 public void main() {
 
 
-	//reportMetrics(|project://smallsql/|);
-	reportMetrics(|project://TestSoftwareQualityMetrics/|);
+	reportMetrics(|project://smallsql/|);
+	//reportMetrics(|project://TestSoftwareQualityMetrics/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);
 	//reportMetrics(|project://hsqldb_small/|);	

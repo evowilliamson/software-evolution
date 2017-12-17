@@ -55,7 +55,7 @@ public void doLog(int theValue) {
 	This method activates logging to the console
 **/
 public void activateToConsole() {
-	logToFile = true;
+	logToConsole = true;
 }
  
  /**
