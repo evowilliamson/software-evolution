@@ -1,4 +1,4 @@
-module Complexity
+module data::Complexity
 
 /**
 	@author Marco Huijben
