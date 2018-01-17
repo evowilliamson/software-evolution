@@ -1,4 +1,4 @@
-module data::Complexity
+module Complexity
 
 /**
 	@author Marco Huijben
@@ -23,6 +23,7 @@ import Types;
 import Utils;
 import Threshold;
 import Logger;
+import Cache;
 
 str METRIC_NAME = "Complexity";
 
@@ -306,7 +307,8 @@ private str getUnitSizeLocRank(int linesOfCode){
 }
 
 /**
-Calculate the cc of a method. Herefore the ast of a method is visited. 
+Calculate the cc of a method. Herefore the ast of a method is visited.
+See https://stackoverflow.com/questions/40064886/obtaining-cyclomatic-complexity 
 **/
 private int calcCCAst(methodAst) {
     int result = 1;

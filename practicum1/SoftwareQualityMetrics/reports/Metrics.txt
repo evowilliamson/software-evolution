@@ -1,42 +1,32 @@
 Calculation of Software Quality Metrics for system: TestSoftwareQualityMetrics
 Duplication calculation
 Source: ClassC.java, LOC duplicated: 12
-Source: ClassB.java, LOC duplicated: 18
 Source: ClassA.java, LOC duplicated: 18
+Source: ClassB.java, LOC duplicated: 18
+Source: EenClass.java, LOC duplicated: 0
 Start calculating Cyclomatic Complexity and Unit size
 Walk through all methods
-2
 Method: |java+method:///ClassA/getHNotDuplicatedTooSmall()|, loc 2, cc: 1, cc rank: simple, unit size: simple
-2
 Method: |java+method:///ClassB/getHNotDuplicatedTooSmall()|, loc 2, cc: 1, cc rank: simple, unit size: simple
-7
 Method: |java+method:///ClassB/getHAndJDuplicated6Lines()|, loc 7, cc: 1, cc rank: simple, unit size: simple
-6
 Method: |java+method:///ClassA/getHAndJDuplicated6Lines()|, loc 6, cc: 1, cc rank: simple, unit size: simple
-10
 Method: |java+method:///ClassB/veryComplexCC4AndDuplicated()|, loc 10, cc: 4, cc rank: simple, unit size: simple
-7
+Method: |java+method:///PackageA/EenClass/AMethod()|, loc 4, cc: 2, cc rank: simple, unit size: simple
 Method: |java+method:///ClassC/contentsOfMethodIsDuplicatedInThisClass1()|, loc 7, cc: 1, cc rank: simple, unit size: simple
-2
 Method: |java+method:///ClassA/testMethod2()|, loc 2, cc: 1, cc rank: simple, unit size: simple
-2
 Method: |java+method:///ClassA/testMethod3()|, loc 2, cc: 1, cc rank: simple, unit size: simple
-10
 Method: |java+method:///ClassA/veryComplexAndDuplicated()|, loc 10, cc: 4, cc rank: simple, unit size: simple
-14
 Method: |java+method:///ClassB/conplexCC6NotDuplicated()|, loc 14, cc: 6, cc rank: simple, unit size: simple
-2
 Method: |java+method:///ClassA/testMethod1()|, loc 2, cc: 1, cc rank: simple, unit size: simple
-7
 Method: |java+method:///ClassC/contentsOfMethodIsDuplicatedInThisClass2()|, loc 7, cc: 1, cc rank: simple, unit size: simple
-CC loc Total methods: 71.0, loc Simple: (100. %), loc Moderate: 0.0 (0. %), loc High: 0.0 (0. %), loc Very High: 0.0 (0. %)
+CC loc Total methods: 75.0, loc Simple: (100. %), loc Moderate: 0.0 (0. %), loc High: 0.0 (0. %), loc Very High: 0.0 (0. %)
 CC rank moderate: ++ (1), rank high: ++ (1), rank very high: ++ (1)
-Unit Size loc Total methods: 71.0, loc Simple: 71.0 (100. %), loc Moderate: 0.0 (0. %), loc High: 0.0 (0. %), loc Very High: 0.0 (0. %)
+Unit Size loc Total methods: 75.0, loc Simple: 75.0 (100. %), loc Moderate: 0.0 (0. %), loc High: 0.0 (0. %), loc Very High: 0.0 (0. %)
 Unit Size rank moderate: ++ (1), rank high: ++ (1), rank very high: ++ (1)
 
 Metrics for system: TestSoftwareQualityMetrics
-<"Volume",0.107,"++"> 
-<"Duplication",46.1538461500,"--"> 
+<"Volume",0.115,"++"> 
+<"Duplication",42.8571428600,"--"> 
 <"Unit Testing",0,"--"> 
 <"Cyclomatic complexity",1,"++"> 
 <"Unit size",1,"++"> 
