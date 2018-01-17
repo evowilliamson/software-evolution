@@ -1,4 +1,4 @@
-module Utils
+module metrics::Utils
 
 /**
 	@author Ivo Willemsen

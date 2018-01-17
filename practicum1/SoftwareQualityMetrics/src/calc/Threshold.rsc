@@ -1,4 +1,4 @@
-module Threshold
+module metrics::Threshold
 
 /**
 	@author Ivo Willemsen

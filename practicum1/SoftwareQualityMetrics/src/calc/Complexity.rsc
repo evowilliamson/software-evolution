@@ -1,4 +1,4 @@
-module Complexity
+module metrics::Complexity
 
 /**
 	@author Marco Huijben
@@ -19,11 +19,11 @@ import lang::java::m3::AST;
 import util::Resources;
 import util::Math;
 import util::Benchmark;
-import Types;
-import Utils;
-import Threshold;
-import Logger;
-import Cache;
+import metrics::Types;
+import metrics::Utils;
+import metrics::Threshold;
+import metrics::Logger;
+import metrics::Cache;
 
 str METRIC_NAME = "Complexity";
 

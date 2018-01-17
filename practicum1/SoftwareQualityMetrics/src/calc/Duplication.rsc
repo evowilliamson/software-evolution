@@ -1,4 +1,4 @@
-module Duplication
+module metrics::Duplication
 /**
 	@author Ivo Willemsen
 	Duplication detection algorithm:
@@ -33,16 +33,16 @@ module Duplication
 	**/
 
 import IO;
-import Utils;
-import Threshold;
+import metrics::Utils;
+import metrics::Threshold;
 import String;
 import List;
 import Map;
-import Volume;
+import metrics::Volume;
 import DateTime;
-import Types;
+import metrics::Types;
 import Set;
-import Logger;
+import metrics::Logger;
 
 public ThresholdRanks duplicationRanks = [
 	<3, "++">,

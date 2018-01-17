@@ -1,4 +1,4 @@
-module Metrics
+module metrics::Metrics
 
 /**
 	@author Ivo Willemsen
@@ -8,18 +8,18 @@ module Metrics
 **/
 
 import util::Math;
-import Volume;
-import Duplication;
-import UnitTesting;
+import metrics::Volume;
+import metrics::Duplication;
+import metrics::UnitTesting;
 import IO;
-import Utils;
-import Threshold;
-import Types;
+import metrics::Utils;
+import metrics::Threshold;
+import metrics::Types;
 import Map;
 import Set;
-import Complexity;
+import metrics::Complexity;
 import lang::csv::IO; 
-import Logger;
+import metrics::Logger;
 
 /**
 	Main method of metrics system

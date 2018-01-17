@@ -1,4 +1,4 @@
-module Volume
+module metrics::Volume
 
 /**
 	@author Ivo Willemsen
@@ -10,12 +10,12 @@ module Volume
 	4. Removing empty lines
 **/
 
-import Threshold;
-import Utils;
+import metrics::Threshold;
+import metrics::Utils;
 import util::Math;
 import IO;
 import util::Resources;
-import Logger;
+import metrics::Logger;
 
 public ThresholdRanks volumeRanks = [
 	<66, "++">,

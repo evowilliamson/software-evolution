@@ -1,4 +1,4 @@
-module Logger
+module metrics::Logger
 
 import IO;
 import util::Math;
