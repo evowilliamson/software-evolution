@@ -1,4 +1,4 @@
-module metrics::Types
+module calc::Types
 
 /**
 	@author Ivo Willemsen

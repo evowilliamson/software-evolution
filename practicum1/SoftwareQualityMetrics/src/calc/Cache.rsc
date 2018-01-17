@@ -1,4 +1,4 @@
-module metrics::Cache
+module calc::Cache
 
 import String;
 import List;

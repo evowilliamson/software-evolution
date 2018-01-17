@@ -1,4 +1,4 @@
-module metrics::Duplication
+module calc::Duplication
 /**
 	@author Ivo Willemsen
 	Duplication detection algorithm:
@@ -33,16 +33,16 @@ module metrics::Duplication
 	**/
 
 import IO;
-import metrics::Utils;
-import metrics::Threshold;
+import calc::Utils;
+import calc::Threshold;
 import String;
 import List;
 import Map;
-import metrics::Volume;
+import calc::Volume;
 import DateTime;
-import metrics::Types;
+import calc::Types;
 import Set;
-import metrics::Logger;
+import calc::Logger;
 
 public ThresholdRanks duplicationRanks = [
 	<3, "++">,
@@ -72,10 +72,10 @@ public DuplicationAggregate getDuplication(loc location, str fileType) {
 	in the Duplication metric. So the Volume metric TLOC will be calculated
 	without the imports, this is indicated by the parameter removeImports which is
 	"true" in the following method call. **/
-	int totalLOC = Volume::getTotalLOC(location, fileType, true);
+	int totalLOC = calc::Volume::getTotalLOC(location, fileType, true);
 	int totalDuplicatedLines = 0;
 
-	Logger::doLog("Duplication calculation"); 
+	calc::Logger::doLog("Duplication calculation"); 
 	
 	list[tuple[int weight, int metric]] metricsPerUnit = [];
 	// Get all sources and store it together with the location in a list
@@ -83,8 +83,8 @@ public DuplicationAggregate getDuplication(loc location, str fileType) {
 	for (source <- sourcesMap) {
 		int duplicatedLines = getDuplicationPerFile(source, sourcesMap[source]); 
 		totalDuplicatedLines += duplicatedLines;
-		metricsPerUnit = metricsPerUnit + <Utils::getLOCForSourceFile(source, true), duplicatedLines>;
-		Logger::doLog("Source: <source.file>, LOC duplicated: <duplicatedLines>"); 
+		metricsPerUnit = metricsPerUnit + <calc::Utils::getLOCForSourceFile(source, true), duplicatedLines>;
+		calc::Logger::doLog("Source: <source.file>, LOC duplicated: <duplicatedLines>"); 
 	};
 	return DuplicationAggregate(totalLOC, totalDuplicatedLines, metricsPerUnit);
 }
@@ -258,8 +258,8 @@ private bool checkDuplicationInSource(str codeStringToCheck, str code) {
    returns: a map of location and its code
 **/
 public map[loc location, str code] getSourceFiles(loc project, str fileType) {
-	return (location: Utils::removeEmptyLines(Utils::filterCode(readFile(location), true)) | 
-					location <- Utils::getSourceFilesInLocation(project, fileType));
+	return (location: calc::Utils::removeEmptyLines(calc::Utils::filterCode(readFile(location), true)) | 
+					location <-calc:: Utils::getSourceFilesInLocation(project, fileType));
 }
 
 /**
@@ -267,23 +267,23 @@ public map[loc location, str code] getSourceFiles(loc project, str fileType) {
 **/
 public void main() {
 	println("Duplication test");
-	DuplicationAggregate duplicationAggregate = getDuplication(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE);
+	DuplicationAggregate duplicationAggregate = getDuplication(|project://TestSoftwareQualityMetrics/|, calc::Utils::FILETYPE);
 	if (size(duplicationAggregate.metrics) == 3) {
-		Logger::doLog("total number units as expected");
+		calc::Logger::doLog("total number units as expected");
 	}
 	else {
-		Logger::doLog("total number units NOT as expected");
+		calc::Logger::doLog("total number units NOT as expected");
 	}
 	if (duplicationAggregate.totalWeight == 104) {
-		Logger::doLog("total number of lines as expected");
+		calc::Logger::doLog("total number of lines as expected");
 	}
 	else {
-		Logger::doLog("total number of lines NOT as expected");
+		calc::Logger::doLog("total number of lines NOT as expected");
 	}
 	if (duplicationAggregate.totalMetric == 48) {
-		Logger::doLog("total number of duplicated lines as expected");
+		calc::Logger::doLog("total number of duplicated lines as expected");
 	}
 	else {
-		Logger::doLog("total number of duplicated lines NOT as expected");
+		calc::Logger::doLog("total number of duplicated lines NOT as expected");
 	}
 }

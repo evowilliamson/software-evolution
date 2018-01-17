@@ -1,4 +1,4 @@
-module metrics::Volume
+module calc::Volume
 
 /**
 	@author Ivo Willemsen
@@ -10,12 +10,12 @@ module metrics::Volume
 	4. Removing empty lines
 **/
 
-import metrics::Threshold;
-import metrics::Utils;
+import calc::Threshold;
+import calc::Utils;
 import util::Math;
 import IO;
 import util::Resources;
-import metrics::Logger;
+import calc::Logger;
 
 public ThresholdRanks volumeRanks = [
 	<66, "++">,
@@ -36,7 +36,7 @@ public ThresholdRanks volumeRanks = [
 **/
 public int getTotalLOC(loc location, str fileType, bool removeImports) {
 	int totalLines = 0;
-	for (a <- Utils::getLOCPerSourceFile(location, fileType, removeImports)) {
+	for (a <- calc::Utils::getLOCPerSourceFile(location, fileType, removeImports)) {
 		totalLines += a.lOCs;
 	}
 	return totalLines;
@@ -48,14 +48,14 @@ public int getTotalLOC(loc location, str fileType, bool removeImports) {
 public void main() {
 	int totalLOCDupNotRem = getTotalLOC(|project://smallsql/|, Utils::FILETYPE, false);
 	int totalLOCDupRem = getTotalLOC(|project://smallsql/|, Utils::FILETYPE, true);
-	Logger::doLog("false");
-	Logger::doLog(totalLOCDupNotRem);
-	Logger::doLog("true");
-	Logger::doLog(totalLOCDupRem);
+	calc::Logger::doLog("false");
+	calc::Logger::doLog(totalLOCDupNotRem);
+	calc::Logger::doLog("true");
+	calc::Logger::doLog(totalLOCDupRem);
 	if (totalLOC == 104) {
-		Logger::doLog("Total number of lines of code as expected");
+		calc::Logger::doLog("Total number of lines of code as expected");
 	}
 	else {
-		Logger::doLog("Total number of lines of code NOT as expected");
+		calc::Logger::doLog("Total number of lines of code NOT as expected");
 	}
 }

@@ -1,4 +1,4 @@
-module metrics::UnitTesting
+module calc::UnitTesting
 
 /**
 	@author Ivo Willemsen
@@ -20,9 +20,9 @@ import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 import IO;
 import Set;
-import metrics::Threshold;
-import metrics::Utils;
-import metrics::Logger;
+import calc::Threshold;
+import calc::Utils;
+import calc::Logger;
 
 public ThresholdRanks unitTestingRanks = [
 	<20, "--">,
@@ -79,12 +79,12 @@ private int getNumberOfAssertStatements2(loc project) {
 	Test the getUnitTesting method
 **/
 public void main() {
-	int asserts = getUnitTesting(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE, 3);
-	Logger::doLog(asserts);
+	int asserts = getUnitTesting(|project://TestSoftwareQualityMetrics/|, calc::Utils::FILETYPE, 3);
+	calc::Logger::doLog(asserts);
 	if (asserts == 100) {
-		Logger::doLog("Number of tests as expected");
+		calc::Logger::doLog("Number of tests as expected");
 	}
 	else {
-		Logger::doLog("Number of tests NOT as expected");
+		calc::Logger::doLog("Number of tests NOT as expected");
 	}
 }

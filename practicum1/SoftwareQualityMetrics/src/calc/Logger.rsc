@@ -1,4 +1,4 @@
-module metrics::Logger
+module calc::Logger
 
 import IO;
 import util::Math;

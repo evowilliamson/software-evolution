@@ -1,4 +1,4 @@
-module metrics::Complexity
+module calc::Complexity
 
 /**
 	@author Marco Huijben
@@ -19,11 +19,11 @@ import lang::java::m3::AST;
 import util::Resources;
 import util::Math;
 import util::Benchmark;
-import metrics::Types;
-import metrics::Utils;
-import metrics::Threshold;
-import metrics::Logger;
-import metrics::Cache;
+import calc::Types;
+import calc::Utils;
+import calc::Threshold;
+import calc::Logger;
+import calc::Cache;
 
 str METRIC_NAME = "Complexity";
 
@@ -173,8 +173,8 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 
 	M3 m3 = createM3FromEclipseProject(project);
 	
-	Logger::doLog("Start calculating Cyclomatic Complexity and Unit size");
-	Logger::doLog("Walk through all methods");
+	calc::Logger::doLog("Start calculating Cyclomatic Complexity and Unit size");
+	calc::Logger::doLog("Walk through all methods");
 	
 	list[tuple[int size, int complexity]] metrics = [];
 	//Select all methods of the M3 object
@@ -184,7 +184,6 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 				
 		//Get LOC of method
 		int locMethod = getLOCForSourceFile(method);
-		Logger::doLog(locMethod);
 		locTotal += locMethod;
 				
 		//Determine CC of the method
@@ -211,7 +210,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 			default: locUnitSizeSimple += locMethod;
 		}
 		
-		Logger::doLog("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");			
+		calc::Logger::doLog("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");			
 		metrics = metrics + <locMethod, cc>;		
 	}
 	
@@ -243,13 +242,13 @@ private num calculateCCRank(num totalProjectLOC, real locSimple, real locModerat
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	Logger::doLog("CC loc Total methods: <locTotal>, loc Simple: (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+	calc::Logger::doLog("CC loc Total methods: <locTotal>, loc Simple: (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 			
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdCCModerate);
 	int rankHigh = getRankNum(highLocPerc, thresholdCCHigh);
 	int rankVeryHigh = getRankNum(veryHighLocPerc, thresholdCCVeryHigh);
-	Logger::doLog("CC rank moderate: <getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)");
+	calc::Logger::doLog("CC rank moderate: <getRank(moderateLocPerc, thresholdCCModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdCCHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdCCVeryHigh)> (<rankVeryHigh>)");
 	
 	//Calculate the aggregrated risk level
 	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);	
@@ -268,13 +267,13 @@ private num calculateUnitSizeRank(num totalProjectLOC, real locSimple, real locM
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	Logger::doLog("Unit Size loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+	calc::Logger::doLog("Unit Size loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdUnitSizeModerate);
 	int rankHigh = getRankNum(highLocPerc, thresholdUnitSizeHigh);
 	int rankVeryHigh = getRankNum(veryHighLocPerc, thresholdUnitSizeVeryHigh);
-	Logger::doLog("Unit Size rank moderate: <getRank(moderateLocPerc, thresholdUnitSizeModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdUnitSizeHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdUnitSizeVeryHigh)> (<rankVeryHigh>)");
+	calc::Logger::doLog("Unit Size rank moderate: <getRank(moderateLocPerc, thresholdUnitSizeModerate)> (<rankModerate>), rank high: <getRank(highLocPerc, thresholdUnitSizeHigh)> (<rankHigh>), rank very high: <getRank(veryHighLocPerc, thresholdUnitSizeVeryHigh)> (<rankVeryHigh>)");
 	
 	//Calculate the aggregrated risk level
 	int maxValue = max([rankModerate, rankHigh, rankVeryHigh]);		
@@ -329,22 +328,26 @@ private int calcCCAst(methodAst) {
     return result;
 }
 
+public void main(){
+	ComplexityAggregate complexityAggregate = getCyclomaticComplexityAndUnitSize(|project://TestSoftwareQualityMetrics/|, calc::Utils::FILETYPE);
+}
+
 /**
-	Main methdod for testing the cyclomatic complexity and the unit size.
+	Test methdod for testing the cyclomatic complexity and the unit size.
 **/
-public void main() {
-	Logger::doLog("Complexity test");
-	ComplexityAggregate complexityAggregate = getCyclomaticComplexityAndUnitSize(|project://TestSoftwareQualityMetrics/|, Utils::FILETYPE);
+public void maintest() {
+	calc::Logger::doLog("Complexity test");
+	ComplexityAggregate complexityAggregate = getCyclomaticComplexityAndUnitSize(|project://TestSoftwareQualityMetrics/|, calc::Utils::FILETYPE);
 	if (complexityAggregate.totalCC == 23) {
-		Logger::doLog("total number of CC as expected");
+		calc::Logger::doLog("total number of CC as expected");
 	}
 	else {
-		Logger::doLog("total number of CC NOT as expected");
+		calc::Logger::doLog("total number of CC NOT as expected");
 	}
 	if (size(complexityAggregate.metrics) == 12) {
-		Logger::doLog("total number units as expected");
+		calc::Logger::doLog("total number units as expected");
 	}
 	else {
-		Logger::doLog("total number units NOT as expected");
+		calc::Logger::doLog("total number units NOT as expected");
 	}	
 }

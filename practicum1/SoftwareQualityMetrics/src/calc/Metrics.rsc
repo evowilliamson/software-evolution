@@ -1,4 +1,4 @@
-module metrics::Metrics
+module calc::Metrics
 
 /**
 	@author Ivo Willemsen
@@ -8,26 +8,26 @@ module metrics::Metrics
 **/
 
 import util::Math;
-import metrics::Volume;
-import metrics::Duplication;
-import metrics::UnitTesting;
+import calc::Utils;
+import calc::Volume;
+import calc::Duplication;
+import calc::UnitTesting;
 import IO;
-import metrics::Utils;
-import metrics::Threshold;
-import metrics::Types;
+import calc::Threshold;
+import calc::Types;
 import Map;
 import Set;
-import metrics::Complexity;
+import calc::Complexity;
 import lang::csv::IO; 
-import metrics::Logger;
+import calc::Logger;
 
 /**
 	Main method of metrics system
 **/
 public void main() {
 
-	reportMetrics(|project://smallsql/|);
-	//reportMetrics(|project://TestSoftwareQualityMetrics/|);
+	//reportMetrics(|project://smallsql/|);
+	reportMetrics(|project://TestSoftwareQualityMetrics/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);
 	//reportMetrics(|project://hsqldb_small/|);	
@@ -40,21 +40,21 @@ public void main() {
 **/
 private void reportMetrics(loc project) {
 
-	Logger::activateToFile();
-	Logger::doLog("Calculation of Software Quality Metrics for system: <project.authority>"); 
+	calc::Logger::activateToFile();
+	calc::Logger::doLog("Calculation of Software Quality Metrics for system: <project.authority>"); 
 
-	num totalLOC = Volume::getTotalLOC(project, Utils::FILETYPE, false);
-	int unitTesting = UnitTesting::getUnitTesting(project, Utils::FILETYPE, 10000);
+	num totalLOC = calc::Volume::getTotalLOC(project, calc::Utils::FILETYPE, false);
+	int unitTesting = calc::UnitTesting::getUnitTesting(project, calc::Utils::FILETYPE, 10000);
 	
-	DuplicationAggregate duplicationMetricAggregate = Duplication::getDuplication(project, Utils::FILETYPE);
-	ComplexityAggregate complexityAggregate = Complexity::getCyclomaticComplexityAndUnitSize(project, Utils::FILETYPE);
+	DuplicationAggregate duplicationMetricAggregate = calc::Duplication::getDuplication(project, calc::Utils::FILETYPE);
+	ComplexityAggregate complexityAggregate = calc::Complexity::getCyclomaticComplexityAndUnitSize(project, calc::Utils::FILETYPE);
 	
-	Logger::doLog("\r\nMetrics for system: " + project.authority + "\r\n" + 
-		"<Threshold::getMetric("Volume", totalLOC/1000, Volume::volumeRanks)> \r\n" + 
-		"<Threshold::getMetric("Duplication", (duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, Duplication::duplicationRanks)> \r\n" +   
-		"<Threshold::getMetric("Unit Testing", unitTesting, UnitTesting::unitTestingRanks)> \r\n" + 
-		"<Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, Complexity::thresholdTotal)> \r\n" +  
-		"<Threshold::getMetric("Unit size", complexityAggregate.unitSize, Complexity::thresholdTotal)> \r\n"); 
+	calc::Logger::doLog("\r\nMetrics for system: " + project.authority + "\r\n" + 
+		"<calc::Threshold::getMetric("Volume", totalLOC/1000, calc::Volume::volumeRanks)> \r\n" + 
+		"<calc::Threshold::getMetric("Duplication", (duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, calc::Duplication::duplicationRanks)> \r\n" +   
+		"<calc::Threshold::getMetric("Unit Testing", unitTesting, UnitTesting::unitTestingRanks)> \r\n" + 
+		"<calc::Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, calc::Complexity::thresholdTotal)> \r\n" +  
+		"<calc::Threshold::getMetric("Unit size", complexityAggregate.unitSize, calc::Complexity::thresholdTotal)> \r\n"); 
 
 	reportAdditionalDuplicationInformation(duplicationMetricAggregate);
 	reportAdditionalComplexityInformation(complexityAggregate);
