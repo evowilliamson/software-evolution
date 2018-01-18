@@ -17,12 +17,12 @@ import IO;
 import util::Resources;
 import calc::Logger;
 
-public ThresholdRanks volumeRanks = [
+public calc::Threshold::ThresholdRanks volumeRanks = [
 	<66, "++">,
 	<246, "+">,
 	<665, "o">,
 	<1310, "-">,
-	<Utils::MAXINT, "--">
+	<calc::Utils::MAXINT, "--">
 ];
 
 /**

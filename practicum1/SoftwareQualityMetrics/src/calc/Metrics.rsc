@@ -52,7 +52,7 @@ private void reportMetrics(loc project) {
 	calc::Logger::doLog("\r\nMetrics for system: " + project.authority + "\r\n" + 
 		"<calc::Threshold::getMetric("Volume", totalLOC/1000, calc::Volume::volumeRanks)> \r\n" + 
 		"<calc::Threshold::getMetric("Duplication", (duplicationMetricAggregate.totalMetric/duplicationMetricAggregate.totalWeight)*100, calc::Duplication::duplicationRanks)> \r\n" +   
-		"<calc::Threshold::getMetric("Unit Testing", unitTesting, UnitTesting::unitTestingRanks)> \r\n" + 
+		"<calc::Threshold::getMetric("Unit Testing", unitTesting, calc::UnitTesting::unitTestingRanks)> \r\n" + 
 		"<calc::Threshold::getMetric("Cyclomatic complexity", complexityAggregate.cc, calc::Complexity::thresholdTotal)> \r\n" +  
 		"<calc::Threshold::getMetric("Unit size", complexityAggregate.unitSize, calc::Complexity::thresholdTotal)> \r\n"); 
 

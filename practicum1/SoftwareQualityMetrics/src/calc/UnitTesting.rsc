@@ -24,12 +24,12 @@ import calc::Threshold;
 import calc::Utils;
 import calc::Logger;
 
-public ThresholdRanks unitTestingRanks = [
+public calc::Threshold::ThresholdRanks unitTestingRanks = [
 	<20, "--">,
 	<60, "-">,
 	<80, "o">,
 	<95, "+">,
-	<Utils::MAXINT, "++">
+	<calc::Utils::MAXINT, "++">
 ];
 
 /**

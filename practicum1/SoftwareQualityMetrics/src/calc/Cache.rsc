@@ -24,47 +24,29 @@ private int METHOD = 3;
 
 private Cache cache = [];
 
-
 /**
-Get the id of a package. If not exist, then the package is added to the cached
+Get a item form the cache. If item doesn't exist then the item will be created.
+@param itemType: the type of the item: PACKAGE, CLASS
 
-return: id of the package in the cache 
+return: the item form the cache or a new created item
 **/
-public int GetPackageId(str name, int parentId){
-	package = [item | item <- cache, item.itemType == PACKAGE, item.name == name, item.parentId == parentId];
-	//println("package: <package>");
-	if (size(package) == 0){
-		//package not found, add to cache
+public CacheItem GetItem(int itemType, str name, int parentId, int unitSize, int complexity){
+	items = [item | item <- cache, item.itemType == itemType, item.name == name, item.parentId == parentId];
+	//println("item: <item>");
+	if (size(items) == 0){
+		//item not found, add to cache
 		newId = GetNewId();
-		cache += <newId, PACKAGE, name, parentId, 0, 0, 0>;
-		return newId;
+		newItem = <newId, itemType, name, parentId, unitSize, complexity, 0>;
+		cache += newItem;
+		return newItem;
 	};
 	
-	return package[0].id;
-}
-
-/**
-Get the id of a class. If not exist, then the class is added to the cached
-
-return: id of the package in the cache
-**/
-public CacheItem GetClass(str name, int parentId, int unitSize, int complexity){
-	classes = [item | item <- cache, item.itemType == CLASS, item.name == name, item.parentId == parentId];
-	
-	if (size(classes) == 0){
-		//class not found, add to cache
-		newId = GetNewId();
-		newClass = <newId, CLASS, name, parentId, unitSize, complexity, 0>;
-		cache += newClass;
-		return newClass;
-	};
-	
-	CacheItem class = classes[0];
-	println("class: <class>");
-	cache[class.id-1].size += unitSize;
-	cache[class.id-1].complexity += complexity;
-		println("class: <cache[class.id-1]>");
-	return class;
+	CacheItem item = items[0];
+	//println("item: <item>");
+	cache[item.id-1].size += unitSize;
+	cache[item.id-1].complexity += complexity;
+	//println("item: <cache[item.id-1]>");
+	return item;
 }
 
 /**
@@ -97,11 +79,13 @@ Add Item to cache
 **/
 public void AddItemToCache(list[str] packages, str className, str method, int size, int complexity){
 	int parentId = 0;
-	for (package <- packages){
-		parentId = GetPackageId(package, parentId);			
+	CacheItem package;
+	for (packageName <- packages){
+		package = GetItem(PACKAGE, packageName, parentId, size, complexity);
+		parentId = package.id;		
 	};
 	
-	class = GetClass(className, parentId, size, complexity);
+	class = GetItem(CLASS, className, parentId, size, complexity);
 	AddMethodToCache(method, class.id, size, complexity);
 }
 

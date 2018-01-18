@@ -44,12 +44,12 @@ import calc::Types;
 import Set;
 import calc::Logger;
 
-public ThresholdRanks duplicationRanks = [
+public calc::Threshold::ThresholdRanks duplicationRanks = [
 	<3, "++">,
 	<5, "+">,
 	<10, "o">,
 	<20, "-">,
-	<Utils::MAXINT, "--">
+	<calc::Utils::MAXINT, "--">
 ];
 
 private int WINDOW_SIZE = 6;
