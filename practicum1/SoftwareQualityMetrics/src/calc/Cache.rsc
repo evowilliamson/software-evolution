@@ -4,6 +4,7 @@ import String;
 import List;
 import IO;
 import ValueIO;
+import calc::Logger;
 
 /**
 id: id of the package, class or method in the Cache
@@ -31,7 +32,7 @@ return: id of the package in the cache
 **/
 public int GetPackageId(str name, int parentId){
 	package = [item | item <- cache, item.itemType == PACKAGE, item.name == name, item.parentId == parentId];
-	println("package: <package>");
+	//println("package: <package>");
 	if (size(package) == 0){
 		//package not found, add to cache
 		newId = GetNewId();
@@ -47,22 +48,27 @@ Get the id of a class. If not exist, then the class is added to the cached
 
 return: id of the package in the cache
 **/
-public int GetClassId(str name, int parentId){
-	class = [item | item <- cache, item.itemType == CLASS, item.name == name, item.parentId == parentId];
-	println("class: <class>");
+public CacheItem GetClass(str name, int parentId, int unitSize, int complexity){
+	classes = [item | item <- cache, item.itemType == CLASS, item.name == name, item.parentId == parentId];
 	
-	if (size(class) == 0){
+	if (size(classes) == 0){
 		//class not found, add to cache
 		newId = GetNewId();
-		cache += <newId, CLASS, name, parentId, 0, 0, 0>;
-		return newId;
+		newClass = <newId, CLASS, name, parentId, unitSize, complexity, 0>;
+		cache += newClass;
+		return newClass;
 	};
 	
-	return class[0].id;
+	CacheItem class = classes[0];
+	println("class: <class>");
+	cache[class.id-1].size += unitSize;
+	cache[class.id-1].complexity += complexity;
+		println("class: <cache[class.id-1]>");
+	return class;
 }
 
 /**
-For now, assume that method isn;t in cache
+For now, assume that method isn't already in the cache
 **/
 public int AddMethodToCache(str name, int classId, int size, int complexity){
 	newId = GetNewId();
@@ -89,14 +95,14 @@ public void AddLocToCache(loc l, int unitSize, int complexity){
 /**
 Add Item to cache
 **/
-public void AddItemToCache(list[str] packages, str class, str method, int size, int complexity){
+public void AddItemToCache(list[str] packages, str className, str method, int size, int complexity){
 	int parentId = 0;
 	for (package <- packages){
 		parentId = GetPackageId(package, parentId);			
 	};
 	
-	classId = GetClassId(class, parentId);
-	AddMethodToCache(method, classId, size, complexity);
+	class = GetClass(className, parentId, size, complexity);
+	AddMethodToCache(method, class.id, size, complexity);
 }
 
 public void printCache(){
@@ -106,12 +112,24 @@ public void printCache(){
 /**
 Save the cache to file
 **/
-public void SaveCache(){
+public void SaveCache(){	
 	loc tmp = |file:///c:/temp/cach.txt|;
+	calc::Logger::doLog("Write cache to file: <tmp>");
 	
 	writeTextValueFile(tmp, cache);
+}
+
+public void ClearCache(){
+	cache = [];
 }
 
 private int GetNewId(){
 	return size(cache) + 1;
 }
+
+private CacheItem GetCachItem(int id){
+	item = [item | item <- cache, item.id == id];
+	println("item: <item>");
+	return item[0];	
+}
+

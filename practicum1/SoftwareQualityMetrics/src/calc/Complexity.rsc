@@ -212,6 +212,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 		
 		calc::Logger::doLog("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");			
 		metrics = metrics + <locMethod, cc>;		
+		calc::Cache::AddLocToCache(method, locMethod, cc);
 	}
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 
@@ -329,7 +330,9 @@ private int calcCCAst(methodAst) {
 }
 
 public void main(){
+	calc::Cache::ClearCache();
 	ComplexityAggregate complexityAggregate = getCyclomaticComplexityAndUnitSize(|project://TestSoftwareQualityMetrics/|, calc::Utils::FILETYPE);
+	calc::Cache::SaveCache();
 }
 
 /**
