@@ -46,8 +46,8 @@ public int getTotalLOC(loc location, str fileType, bool removeImports) {
 	Calls the test methods
 **/
 public void main() {
-	int totalLOCDupNotRem = getTotalLOC(|project://smallsql/|, Utils::FILETYPE, false);
-	int totalLOCDupRem = getTotalLOC(|project://smallsql/|, Utils::FILETYPE, true);
+	int totalLOCDupNotRem = getTotalLOC(|project://smallsql/|, calc::Utils::FILETYPE, false);
+	int totalLOCDupRem = getTotalLOC(|project://smallsql/|, calc::Utils::FILETYPE, true);
 	calc::Logger::doLog("false");
 	calc::Logger::doLog(totalLOCDupNotRem);
 	calc::Logger::doLog("true");
