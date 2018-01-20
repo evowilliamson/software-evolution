@@ -43,6 +43,7 @@ import DateTime;
 import calc::Types;
 import Set;
 import calc::Logger;
+import calc::Cache;
 
 public calc::Threshold::ThresholdRanks duplicationRanks = [
 	<3, "++">,
@@ -85,6 +86,7 @@ public DuplicationAggregate getDuplication(loc location, str fileType) {
 		totalDuplicatedLines += duplicatedLines;
 		metricsPerUnit = metricsPerUnit + <calc::Utils::getLOCForSourceFile(source, true), duplicatedLines>;
 		calc::Logger::doLog("Source: <source.file>, LOC duplicated: <duplicatedLines>"); 
+		calc::Cache::AddFileToCache(source, 0, 0, duplicatedLines);
 	};
 	return DuplicationAggregate(totalLOC, totalDuplicatedLines, metricsPerUnit);
 }

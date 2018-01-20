@@ -18,9 +18,11 @@ duplication: the duplication of the package, class or method
 alias CacheItem = tuple[int id, int itemType, str name, int parentId, int size, int complexity, int duplication];
 alias Cache = list[CacheItem];
 
+private int APPLICATION = 0;
 private int PACKAGE = 1;
-private int CLASS = 2;
-private int METHOD = 3;
+private int FILE = 2;
+private int CLASS = 3;
+private int METHOD = 4;
 
 private Cache cache = [];
 
@@ -30,13 +32,13 @@ Get a item form the cache. If item doesn't exist then the item will be created.
 
 return: the item form the cache or a new created item
 **/
-public CacheItem GetItem(int itemType, str name, int parentId, int unitSize, int complexity){
+private CacheItem GetItem(int itemType, str name, int parentId, int unitSize, int complexity, int duplication){
 	items = [item | item <- cache, item.itemType == itemType, item.name == name, item.parentId == parentId];
 	//println("item: <item>");
 	if (size(items) == 0){
 		//item not found, add to cache
 		newId = GetNewId();
-		newItem = <newId, itemType, name, parentId, unitSize, complexity, 0>;
+		newItem = <newId, itemType, name, parentId, unitSize, complexity, duplication>;
 		cache += newItem;
 		return newItem;
 	};
@@ -52,16 +54,19 @@ public CacheItem GetItem(int itemType, str name, int parentId, int unitSize, int
 /**
 For now, assume that method isn't already in the cache
 **/
-public int AddMethodToCache(str name, int classId, int size, int complexity){
+private int AddMethodToCache(str name, int classId, int size, int complexity, int duplication){
 	newId = GetNewId();
-	cache += <newId, METHOD, name, classId, size, complexity, 0>;
+	cache += <newId, METHOD, name, classId, size, complexity, duplication>;
 	return newId;
 }
 
-
-public void AddLocToCache(loc l, int unitSize, int complexity){
+/**
+Add a location (method) to the cache. The packages, class and file name will also be added to the cache. 
+**/
+public void AddLocToCache(loc l, str fileName, int unitSize, int complexity, int duplication){
 	methodName = split("(", l.file)[0];	
 	//println("method name: <methodName>");
+	//println("filename <fileName>");
   	pathParts = split("/", l.parent.path);
   	//println("pathParts: <pathParts>");
   	s = size(pathParts)-1;  	
@@ -71,22 +76,52 @@ public void AddLocToCache(loc l, int unitSize, int complexity){
   	//println("packages: <packages>");
   	//println("parts: <parts>");
   	//println("packages: <packages>");
-  	AddItemToCache(packages, className, methodName, unitSize, complexity);
+  	AddItemToCache(packages, fileName, className, methodName, unitSize, complexity, duplication);
 }
 
 /**
-Add Item to cache
+Add a file location (e.g. class.java) to the cache.
 **/
-public void AddItemToCache(list[str] packages, str className, str method, int size, int complexity){
-	int parentId = 0;
-	CacheItem package;
+public void AddFileToCache(loc l, int unitSize, int complexity, int duplication){	
+	println("file: <l.path> - <l.file> - <duplication>");
+	packages = split("/", l.path);
+	packages = delete(packages, 1); //delete /src part
+	packages = delete(packages, size(packages)-1); //delete classname
+	println("packages <packages>");
+	
+	
+	//First package is always "". This is the application level	
+	GetItem(APPLICATION, "Application", 0, unitSize, complexity, duplication);
+	packages = drop(1, packages);
+	
+	int parentId = 1;
 	for (packageName <- packages){
-		package = GetItem(PACKAGE, packageName, parentId, size, complexity);
+		package = GetItem(PACKAGE, packageName, parentId, unitSize, complexity, duplication);
 		parentId = package.id;		
 	};
 	
-	class = GetItem(CLASS, className, parentId, size, complexity);
-	AddMethodToCache(method, class.id, size, complexity);
+	GetItem(FILE, l.file, parentId, unitSize, complexity, duplication);
+}
+
+/**
+Add Item to cache. The item is a method and also the class, file and the packages are added to the cache.
+**/
+private void AddItemToCache(list[str] packages, str fileName, str className, str method, int unitSize, int complexity, int duplication){
+	int parentId = 1;
+	CacheItem package;
+	
+	//First package is always "". This is the application level	
+	GetItem(APPLICATION, "Application", 0, unitSize, complexity, duplication);
+	packages = drop(1, packages);
+	
+	for (packageName <- packages){
+		package = GetItem(PACKAGE, packageName, parentId, unitSize, complexity, duplication);
+		parentId = package.id;		
+	};
+		
+	file = GetItem(FILE, fileName, parentId, unitSize, complexity, duplication);
+	class = GetItem(CLASS, className, file.id, unitSize, complexity, duplication);
+	AddMethodToCache(method, class.id, unitSize, complexity, duplication);
 }
 
 public void printCache(){

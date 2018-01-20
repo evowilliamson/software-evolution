@@ -180,7 +180,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 	//Select all methods of the M3 object
 	for(method <- methods(m3)){
 		//Get AST of method		
-		methodAst = getMethodASTEclipse(method, model = m3);		
+		methodAst = getMethodASTEclipse(method, model = m3);
 				
 		//Get LOC of method
 		int locMethod = getLOCForSourceFile(method);
@@ -212,7 +212,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 		
 		calc::Logger::doLog("Method: <method>, loc <locMethod>, cc: <cc>, cc rank: <ccRank>, unit size: <unitSizeRank>");			
 		metrics = metrics + <locMethod, cc>;		
-		calc::Cache::AddLocToCache(method, locMethod, cc);
+		calc::Cache::AddLocToCache(method, methodAst@src.file, locMethod, cc, 0);
 	}
 	
 	//Aggregrates the calculates cc and us into one cc and us for the project 

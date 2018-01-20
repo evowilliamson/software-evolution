@@ -20,6 +20,7 @@ import Set;
 import calc::Complexity;
 import lang::csv::IO; 
 import calc::Logger;
+import calc::Cache;
 
 /**
 	Main method of metrics system
@@ -39,7 +40,7 @@ public void main() {
 	@project the project
 **/
 private void reportMetrics(loc project) {
-
+    calc::Cache::ClearCache();
 	calc::Logger::activateToFile();
 	calc::Logger::doLog("Calculation of Software Quality Metrics for system: <project.authority>"); 
 
@@ -58,7 +59,7 @@ private void reportMetrics(loc project) {
 
 	reportAdditionalDuplicationInformation(duplicationMetricAggregate);
 	reportAdditionalComplexityInformation(complexityAggregate);
-	
+	calc::Cache::SaveCache();
 }
 
 /**
