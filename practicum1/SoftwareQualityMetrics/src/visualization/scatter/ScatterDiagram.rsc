@@ -7,6 +7,7 @@ import vis::examples::New;
 import IO;
 
 private int DIVISIONS = 10;
+private int FONTSIZE = 9;
 
 public void main() {
 
@@ -33,8 +34,8 @@ public void generateRandomScatterDiagram(){
 
 	emptyGrid = grid([createGridRows()]);
 	filledGrid = overlay(emptyGrid + ellipses);
-	canvas = hcat([filledGrid, createYAxisInformation()], gap(1));
-	render(vcat([canvas, createXAxisInformation()], gap(1)));
+	canvas = hcat([filledGrid, createYAxisInformation()], gap(solidLine()));
+	render(vcat([canvas, createXAxisInformation()], gap(solidLine())));
 	
 } 
 
@@ -42,27 +43,27 @@ private Figure createXAxisInformation() {
 
 	list[Figure] boxes = 
 			box(hshrink(((toReal(DIVISIONS) - 1.0)/100.0)/2.0), lineWidth(noLine())) + 
-			[box(text("test"), lineWidth(noLine())) | int x <- [1 .. DIVISIONS]] + 
+			[box(text("test", fontSize(FONTSIZE)), lineWidth(noLine())) | int x <- [1 .. DIVISIONS]] + 
 			box(hshrink(((toReal(DIVISIONS) - 1.0)/100.0)/2.0), lineWidth(noLine()));
-	box_ = hcat(boxes + box(hshrink(1.0/toReal(DIVISIONS + 1)), lineWidth(noLine())));
+	box_ = hcat(boxes + box(hshrink((1.0/toReal(DIVISIONS + 1)/3.0)), lineWidth(noLine())));
 	return overlay([box_], vshrink(1.0/(toReal(DIVISIONS) * 2.0)));
 	
 }
 
-private Figure createXAxisInformation2() {
+private Figure createYAxisLegendInfo() {
 
-	list[Figure] boxes = [box(text("test"), lineWidth(solidLine())) | int x <- [1 .. DIVISIONS + 1]];
-	box_ = hcat(boxes + box(text("test"), lineWidth(solidLine())));
-	return overlay([box_], vshrink(1.0/(toReal(DIVISIONS) * 2.0)));
+	list[Figure] boxes = [box(text("test", halign(0.1), fontSize(FONTSIZE)), lineWidth(1.0), hshrink(0.1)) | int x <- [1 .. DIVISIONS]]; 
+	box_ = vcat(boxes);
+	return overlay([box_], hshrink((toReal(DIVISIONS) - 1.0)/500.0));
 	
 }
 
 private Figure createYAxisInformation() {
 
-	list[Figure] boxes = [box(text("test", halign(0.1)), lineWidth(0.0)) | int x <- [1 .. DIVISIONS]]; 
+	list[Figure] boxes = [box(text("test", halign(0.1), fontSize(FONTSIZE)), lineWidth(1.0)) | int x <- [1 .. DIVISIONS]]; 
 	box_ = vcat(box(vshrink(1.0/(toReal(DIVISIONS) * 2.0)), lineWidth(noLine())) + 
 			boxes + box(vshrink(1.0/(toReal(DIVISIONS) * 2.0)), lineWidth(noLine())));
-	return overlay([box_], hshrink((toReal(DIVISIONS) - 1.0)/100.0));
+	return overlay([box_], hshrink((toReal(DIVISIONS) - 1.0)/300.0));
 	
 }
 
