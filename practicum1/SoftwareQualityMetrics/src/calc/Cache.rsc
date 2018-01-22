@@ -18,11 +18,12 @@ duplication: the duplication of the package, class or method
 alias CacheItem = tuple[int id, int itemType, str name, int parentId, int size, int complexity, int duplication];
 alias Cache = list[CacheItem];
 
-private int APPLICATION = 0;
-private int PACKAGE = 1;
-private int FILE = 2;
-private int CLASS = 3;
-private int METHOD = 4;
+//Cache item types
+public int APPLICATION = 0;
+public int PACKAGE = 1;
+public int FILE = 2;
+public int CLASS = 3;
+public int METHOD = 4;
 
 private Cache cache = [];
 
@@ -83,11 +84,11 @@ public void AddLocToCache(loc l, str fileName, int unitSize, int complexity, int
 Add a file location (e.g. class.java) to the cache.
 **/
 public void AddFileToCache(loc l, int unitSize, int complexity, int duplication){	
-	println("file: <l.path> - <l.file> - <duplication>");
+	//println("file: <l.path> - <l.file> - <duplication>");
 	packages = split("/", l.path);
 	packages = delete(packages, 1); //delete /src part
 	packages = delete(packages, size(packages)-1); //delete classname
-	println("packages <packages>");
+	//println("packages <packages>");
 	
 	
 	//First package is always "". This is the application level	
@@ -124,8 +125,22 @@ private void AddItemToCache(list[str] packages, str fileName, str className, str
 	AddMethodToCache(method, class.id, unitSize, complexity, duplication);
 }
 
-public void printCache(){
+public void PrintCache(){
 	println("cache: <cache>");
+}
+
+public void ReadCach(){
+	loc tmp = |file:///c:/temp/cach.txt|;	
+	ReadCache(tmp);
+}
+
+public void ReadCache(loc file){
+	calc::Logger::doLog("Read cache from file: <file>");
+	cache = readTextValueFile(#Cache, file);
+}
+
+public Cache GetCache(){
+	return cache; 
 }
 
 /**
@@ -144,6 +159,10 @@ public void ClearCache(){
 
 private int GetNewId(){
 	return size(cache) + 1;
+}
+
+private list[CacheItem] GetCachItemsWithParent(int parentId){
+	return [item | item <- cache, item.parentId == parentId];
 }
 
 private CacheItem GetCachItem(int id){
