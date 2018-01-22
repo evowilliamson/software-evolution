@@ -5,6 +5,8 @@ import vis::Render;
 import util::Math;
 import vis::examples::New;
 import IO;
+import Set;
+import Relation;
 
 private int DIVISIONS = 10;
 private int FONTSIZE_AXIS_METRIC = 8;
@@ -30,11 +32,25 @@ private Figure getNodeInformation() {
 
 }
 
-public Figure createGrid(){
+public Figure createGrid(set[tuple[int complexity, int size]] metrics, int minComplexity, int maxComplexity, int minSize, int maxSize) {
 
-	ellipses = [ellipse(
-		[halign(arbReal()), valign(arbReal()), resizable(false), size(7), fillColor(arbColor), mouseOver(getNodeInformation())]) | int x <- [1 .. 500]];
+	blas = [
+						<((toReal(x.complexity - minComplexity)/toReal(maxComplexity - minComplexity))),
+						((toReal(x.size - minSize)/toReal(maxSize - minSize)))> 
+					 | x <- metrics
+			];
 
+	print(blas);
+	
+	ellipses = [
+				ellipse(
+					[
+						halign((toReal(x.complexity - minComplexity)/toReal(maxComplexity - minComplexity))), 
+						valign((toReal(x.size - minSize)/toReal(maxSize - minSize))), resizable(false), size(7), 
+						fillColor(arbColor),
+						mouseOver(getNodeInformation())
+					]) | x <- metrics
+				];
 	emptyGrid = grid([createGridRows()]);
 	filledGrid = overlay(emptyGrid + ellipses);
 	//canvas = hcat([filledGrid, createYAxisInformation()], gap(solidLine()));
@@ -44,60 +60,60 @@ public Figure createGrid(){
 } 
 
 private void createScatterDiagram() {
+
+	set[tuple[int complexity, int size]] metrics = {<arbInt(100), arbInt(300)> | int x <- [1 .. 4]};
+	
+	set[int] complexities = domain(metrics); 
+	int maxComplexity = max(complexities);
+	int minComplexity = min(complexities);
+	set[int] sizes = range(metrics); 
+	int maxSize = max(sizes);
+	int minSize = min(sizes);
+	
+	print(toList(metrics));
+
 	render(box(grid([
 			[
-				box(createGrid(), vshrink(0.95), hshrink(0.9)),
-				hcat([text("1"),text("1")], vshrink(0.95))
+				box(createGrid(metrics, minComplexity, maxComplexity, minSize, maxSize), vshrink(0.95), hshrink(0.95)),
+				hcat([
+					vcat(createYAxisMetricsInformation(minSize, maxSize), halign(0.0)),
+					vcat(createYAxisTitle(), halign(0.0))
+					], vshrink(0.95), halign(0.0))
 			],
 	 		[
 	 			vcat([
-	 				hcat(createXAxisMetricsInformation(), valign(0.0)), 
+	 				hcat(createXAxisMetricsInformation(minComplexity, maxComplexity), valign(0.0)), 
 	 				createXAxisTitle()
-	 				], hshrink(0.9)),
-	 			text("1")
+	 				], hshrink(0.95))
 	 		]
 		])));
 }
 
+private list[Figure] createXAxisMetricsInformation(int minComplexity, int maxComplexity) {
 
-public void mondriaan(){
-	// Painting by Piet Mondriaan: Composition II in Red, Blue, and Yellow, 1930
-	render(grid([
-			[
-				vcat([box(),box()],hshrink(0.2),vshrink(0.8))
-				,box(vshrink(0.8))
-			],
-	 		[
-	 			box(hshrink(0.2)),
-	 			hcat([
-	 				  box(hshrink(0.9)),
-	 				  vcat([box(),box()])
-					 ])
-	 		]
-		]));
-} 
-
-private Figure createXAxisInformationOld() {
-
-	list[Figure] boxes = 
-			box(hshrink(((toReal(DIVISIONS) - 1.0)/100.0)/2.0), lineWidth(noLine())) + 
-			[box(text("test", FONTSIZE_AXIS_METRIC(FONTSIZE_AXIS_METRIC)), lineWidth(noLine())) | int x <- [1 .. DIVISIONS]] + 
-			box(hshrink(((toReal(DIVISIONS) - 1.0)/100.0)/2.0), lineWidth(noLine()));
-	box_ = hcat(boxes + box(hshrink((1.0/toReal(DIVISIONS + 1)/3.0)), lineWidth(noLine())));
-	return overlay([box_], vshrink(1.0/(toReal(DIVISIONS) * 2.0)));
+	maxComplexity = ((maxComplexity / 10) * 10) + 10;
+	return [text(toString(x), font(FONTNAME), fontSize(FONTSIZE_AXIS_METRIC), halign(1.0)) | int x <- [maxComplexity/10, (maxComplexity/10)*2 ..  maxComplexity + 1]];
 	
 }
 
-private list[Figure] createXAxisMetricsInformation() {
+private list[Figure] createYAxisMetricsInformation(int minSize, maxSize) {
 
-	list[Figure] boxes = [text(toString(x), font(FONTNAME), fontSize(FONTSIZE_AXIS_METRIC), halign(1.0)) | int x <- [1 .. 11]]; 
-	return boxes;
+	return [text(toString(x), font(FONTNAME), fontSize(FONTSIZE_AXIS_METRIC), valign(0.0)) | int x <- [maxSize, maxSize - (maxSize/10) .. (maxSize/10) - 1]];
 	
 }
 
 private Figure createXAxisTitle() {
 
 	return text("Complexity - McCabe values", font(FONTNAME), fontSize(FONTSIZE_AXIS_TITLE), fontBold(true));
+	
+}
+
+private list[Figure] createYAxisTitle() {
+
+	return 	[
+		text("Unit", font(FONTNAME), fontSize(FONTSIZE_AXIS_TITLE), fontBold(true), valign(1.0)), 
+		text("Size", font(FONTNAME), fontSize(FONTSIZE_AXIS_TITLE), fontBold(true), valign(0.0))
+			];
 	
 }
 
