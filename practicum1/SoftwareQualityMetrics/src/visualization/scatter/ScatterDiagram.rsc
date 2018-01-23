@@ -7,6 +7,7 @@ import vis::examples::New;
 import IO;
 import Set;
 import Relation;
+import String;
 
 private int DIVISIONS = 10;
 private int FONTSIZE_AXIS_METRIC = 8;
@@ -16,7 +17,6 @@ private int FONTSIZE_AXIS_TITLE = 11;
 public void main() {
 
 	createScatterDiagram();
-	//mondriaan();
 	
 }
 
@@ -35,8 +35,8 @@ private Figure getNodeInformation() {
 public Figure createGrid(set[tuple[int complexity, int size]] metrics, int minComplexity, int maxComplexity, int minSize, int maxSize) {
 
 	blas = [
-						<((toReal(x.complexity - minComplexity)/toReal(maxComplexity - minComplexity))),
-						((toReal(x.size - minSize)/toReal(maxSize - minSize)))> 
+						<calculateAlignInGrid(x.complexity, minComplexity, maxComplexity),
+						calculateAlignInGrid(x.size, minSize, maxSize)> 
 					 | x <- metrics
 			];
 
@@ -45,23 +45,21 @@ public Figure createGrid(set[tuple[int complexity, int size]] metrics, int minCo
 	ellipses = [
 				ellipse(
 					[
-						halign((toReal(x.complexity - minComplexity)/toReal(maxComplexity - minComplexity))), 
-						valign((toReal(x.size - minSize)/toReal(maxSize - minSize))), resizable(false), size(7), 
+						halign(calculateAlignInGrid(x.complexity, minComplexity, maxComplexity)), 
+						valign(1 - calculateAlignInGrid(x.size, minSize, maxSize)), resizable(false), size(7), 
 						fillColor(arbColor),
 						mouseOver(getNodeInformation())
 					]) | x <- metrics
 				];
 	emptyGrid = grid([createGridRows()]);
 	filledGrid = overlay(emptyGrid + ellipses);
-	//canvas = hcat([filledGrid, createYAxisInformation()], gap(solidLine()));
-	//render(vcat([canvas, createXAxisInformation()], gap(solidLine())));
 	return filledGrid;
 	
 } 
 
 private void createScatterDiagram() {
 
-	set[tuple[int complexity, int size]] metrics = {<arbInt(100), arbInt(300)> | int x <- [1 .. 4]};
+	set[tuple[int complexity, int size]] metrics = {<arbInt(100), arbInt(300)> | int x <- [1 .. 5]};
 	
 	set[int] complexities = domain(metrics); 
 	int maxComplexity = max(complexities);
@@ -89,16 +87,24 @@ private void createScatterDiagram() {
 		])));
 }
 
-private list[Figure] createXAxisMetricsInformation(int minComplexity, int maxComplexity) {
+private list[Figure] createXAxisMetricsInformation(int min, int max) {
 
-	maxComplexity = ((maxComplexity / 10) * 10) + 10;
-	return [text(toString(x), font(FONTNAME), fontSize(FONTSIZE_AXIS_METRIC), halign(1.0)) | int x <- [maxComplexity/10, (maxComplexity/10)*2 ..  maxComplexity + 1]];
+	real minReal = toReal(min);
+	real maxReal = toReal(max);
+	real stepSize = ((maxReal-minReal)/toReal(DIVISIONS));
+	return [text(formatDecimalString(toString(x)), font(FONTNAME), fontSize(FONTSIZE_AXIS_METRIC), halign(1.0)) | 
+				real x <- [minReal + stepSize, minReal + stepSize + stepSize .. maxReal + 1]];
 	
 }
 
-private list[Figure] createYAxisMetricsInformation(int minSize, maxSize) {
+private list[Figure] createYAxisMetricsInformation(int min, max) {
 
-	return [text(toString(x), font(FONTNAME), fontSize(FONTSIZE_AXIS_METRIC), valign(0.0)) | int x <- [maxSize, maxSize - (maxSize/10) .. (maxSize/10) - 1]];
+	real minReal = toReal(min);
+	real maxReal = toReal(max);
+	real stepSize = ((maxReal-minReal)/toReal(DIVISIONS));
+	
+	return [text(formatDecimalString(toString(x)), font(FONTNAME), fontSize(FONTSIZE_AXIS_METRIC), valign(0.0)) | 
+				real x <- [maxReal, maxReal - toReal(stepSize) .. minReal]];
 	
 }
 
@@ -117,23 +123,6 @@ private list[Figure] createYAxisTitle() {
 	
 }
 
-private Figure createYAxisLegendInfo() {
-
-	list[Figure] boxes = [box(text("test", halign(0.1), FONTSIZE_AXIS_METRIC(FONTSIZE_AXIS_METRIC)), lineWidth(1.0), hshrink(0.1)) | int x <- [1 .. DIVISIONS]]; 
-	box_ = vcat(boxes);
-	return overlay([box_], hshrink((toReal(DIVISIONS) - 1.0)/500.0));
-	
-}
-
-private Figure createYAxisInformation() {
-
-	list[Figure] boxes = [box(text("test", halign(0.1), FONTSIZE_AXIS_METRIC(FONTSIZE_AXIS_METRIC)), lineWidth(1.0)) | int x <- [1 .. DIVISIONS]]; 
-	box_ = vcat(box(vshrink(1.0/(toReal(DIVISIONS) * 2.0)), lineWidth(noLine())) + 
-			boxes + box(vshrink(1.0/(toReal(DIVISIONS) * 2.0)), lineWidth(noLine())));
-	return overlay([box_], hshrink((toReal(DIVISIONS) - 1.0)/300.0));
-	
-}
-
 private list[Figure] createGridRows() {
 
 	row = [box(lineWidth(solidLine())) | int x <- [1 .. DIVISIONS + 1]];
@@ -147,5 +136,26 @@ private real solidLine() {
 
 private real noLine() {
 	return 0.0;
+}
+
+private real calculateAlignInGrid(int x, int min, int max) {
+
+	if (max == min) 
+		return 1.0;
+	else 
+		return (toReal(x - min)/toReal(max - min));
+	
+}
+
+private str formatDecimalString(str theString) {
+
+	str lastLetter = substring(theString, size(theString)-1); 
+	if (lastLetter == ".") {
+		return substring(theString, 0, size(theString)) + "0";
+	}
+	else {
+		return theString;
+	}	
+	
 }
 
