@@ -32,24 +32,16 @@ private Figure getNodeInformation() {
 
 }
 
-public Figure createGrid(set[tuple[int complexity, int size]] metrics, int minComplexity, int maxComplexity, int minSize, int maxSize) {
+public Figure createGrid(set[tuple[int x, int y]] metrics, int minXValue, int maxXValue, int minYValue, int maxYValue) {
 
-	blas = [
-						<calculateAlignInGrid(x.complexity, minComplexity, maxComplexity),
-						calculateAlignInGrid(x.size, minSize, maxSize)> 
-					 | x <- metrics
-			];
-
-	print(blas);
-	
 	ellipses = [
 				ellipse(
 					[
-						halign(calculateAlignInGrid(x.complexity, minComplexity, maxComplexity)), 
-						valign(1 - calculateAlignInGrid(x.size, minSize, maxSize)), resizable(false), size(7), 
+						halign(calculateAlignInGrid(metric.x, minXValue, maxXValue)), 
+						valign(1 - calculateAlignInGrid(metric.y, minYValue, maxYValue)), resizable(false), size(7), 
 						fillColor(arbColor),
 						mouseOver(getNodeInformation())
-					]) | x <- metrics
+					]) | metric <- metrics
 				];
 	emptyGrid = grid([createGridRows()]);
 	filledGrid = overlay(emptyGrid + ellipses);
@@ -59,29 +51,31 @@ public Figure createGrid(set[tuple[int complexity, int size]] metrics, int minCo
 
 private void createScatterDiagram() {
 
-	set[tuple[int complexity, int size]] metrics = {<arbInt(100), arbInt(300)> | int x <- [1 .. 5]};
+	str xAxisTitle = "Complexity - McCabe values";
+	str yAxisTitle = "Unit Size";
+	set[tuple[int x, int y]] metrics = {<arbInt(100), arbInt(300)> | int x <- [1 .. 5]};
 	
-	set[int] complexities = domain(metrics); 
-	int maxComplexity = max(complexities);
-	int minComplexity = min(complexities);
-	set[int] sizes = range(metrics); 
-	int maxSize = max(sizes);
-	int minSize = min(sizes);
+	set[int] xValues = domain(metrics); 
+	int maxXValue = max(xValues);
+	int minXValue = min(xValues);
+	set[int] yValues = range(metrics); 
+	int maxYValue = max(yValues);
+	int minYValue = min(yValues);
 	
 	print(toList(metrics));
 
 	render(box(grid([
 			[
-				box(createGrid(metrics, minComplexity, maxComplexity, minSize, maxSize), vshrink(0.95), hshrink(0.95)),
+				box(createGrid(metrics, minXValue, maxXValue, minYValue, maxYValue), vshrink(0.95), hshrink(0.95)),
 				hcat([
-					vcat(createYAxisMetricsInformation(minSize, maxSize), halign(0.0)),
-					vcat(createYAxisTitle(), halign(0.0))
+					vcat(createYAxisMetricsInformation(minYValue, maxYValue), halign(0.0)),
+					vcat(createYAxisTitle(yAxisTitle), halign(0.0))
 					], vshrink(0.95), halign(0.0))
 			],
 	 		[
 	 			vcat([
-	 				hcat(createXAxisMetricsInformation(minComplexity, maxComplexity), valign(0.0)), 
-	 				createXAxisTitle()
+	 				hcat(createXAxisMetricsInformation(minXValue, maxXValue), valign(0.0)), 
+	 				createXAxisTitle(xAxisTitle)
 	 				], hshrink(0.95))
 	 		]
 		])));
@@ -108,18 +102,15 @@ private list[Figure] createYAxisMetricsInformation(int min, max) {
 	
 }
 
-private Figure createXAxisTitle() {
+private Figure createXAxisTitle(str theString) {
 
-	return text("Complexity - McCabe values", font(FONTNAME), fontSize(FONTSIZE_AXIS_TITLE), fontBold(true));
+	return text(theString, font(FONTNAME), fontSize(FONTSIZE_AXIS_TITLE), fontBold(true));
 	
 }
 
-private list[Figure] createYAxisTitle() {
+private list[Figure] createYAxisTitle(str theString) {
 
-	return 	[
-		text("Unit", font(FONTNAME), fontSize(FONTSIZE_AXIS_TITLE), fontBold(true), valign(1.0)), 
-		text("Size", font(FONTNAME), fontSize(FONTSIZE_AXIS_TITLE), fontBold(true), valign(0.0))
-			];
+	return 	[text(replaceAll(theString, " ", "\n"), font(FONTNAME), fontSize(FONTSIZE_AXIS_TITLE), fontBold(true), valign(0.0))];
 	
 }
 
