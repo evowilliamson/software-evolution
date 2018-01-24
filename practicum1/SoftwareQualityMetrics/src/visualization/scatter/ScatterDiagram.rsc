@@ -9,6 +9,7 @@ import Set;
 import Relation;
 import String;
 import vis::KeySym;
+import visualization::scatter::Types;
 
 private int DIVISIONS = 10;
 private int FONTSIZE_AXIS_METRIC = 8;
@@ -52,16 +53,16 @@ private Figure getNodeInformation() {
 
 }
 
-public Figure createGrid(set[tuple[int x, int y]] metrics, int minXValue, int maxXValue, int minYValue, int maxYValue, int level) {
+public Figure createGrid(ScatterData scatterData) {
 
 	dataPoints = [
 				ellipse(
 					[
-						halign(calculateAlignInGrid(metric.x, minXValue, maxXValue)), 
-						valign(1 - calculateAlignInGrid(metric.y, minYValue, maxYValue)), resizable(false), size(5), 
+						halign(calculateAlignInGrid(metric.x, scatterData.minXValue, scatterData.maxXValue)), 
+						valign(1 - calculateAlignInGrid(metric.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), size(5), 
 						fillColor(arbColor)//,
 						//mouseOver(getNodeInformation())
-					]) | metric <- metrics
+					]) | metric <- scatterData.metrics
 				];
 	emptyGrid = grid([createGridRows()]);
 	filledGrid = overlay(emptyGrid + dataPoints);
@@ -69,50 +70,53 @@ public Figure createGrid(set[tuple[int x, int y]] metrics, int minXValue, int ma
 	
 } 
 
-public Figure createScatterDiagram(int level) {
+private ScatterData createScatterData(set[tuple[int x, int y]] metrics, str xAxisTitle, str yAxisTitle) {
 
-	str xAxisTitle = "Complexity - McCabe values";
-	str yAxisTitle = "Unit Size";
-	set[tuple[int x, int y]] metrics = {<arbInt(100), arbInt(300)> | int x <- [1 .. 1000]};
-	
 	set[int] xValues = domain(metrics); 
 	int maxXValue = max(xValues);
 	int minXValue = min(xValues);
 	set[int] yValues = range(metrics); 
 	int maxYValue = max(yValues);
 	int minYValue = min(yValues);
+	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle);
+
+}
+
+public Figure createScatterDiagram(int level) {
+
+	scatterData = createScatterData({<arbInt(100), arbInt(300)> | int x <- [1 .. 1000]}, "Complexity - McCabe values", "Unit Size");
 	
 	return(box(grid([
 			[
-				box(createGrid(metrics, minXValue, maxXValue, minYValue, maxYValue, level), vshrink(0.95), hshrink(0.95)),
+				box(createGrid(scatterData), vshrink(0.95), hshrink(0.95)),
 				hcat([
-					vcat(createYAxisMetricsInformation(minYValue, maxYValue), halign(0.0)),
-					vcat(createYAxisTitle(yAxisTitle), halign(0.0))
+					vcat(createYAxisMetricsInformation(scatterData), halign(0.0)),
+					vcat(createYAxisTitle(scatterData.yAxisTitle), halign(0.0))
 					], vshrink(0.95), halign(0.0))
 			],
 	 		[
 	 			vcat([
-	 				hcat(createXAxisMetricsInformation(minXValue, maxXValue), valign(0.0)), 
-	 				createXAxisTitle(xAxisTitle)
+	 				hcat(createXAxisMetricsInformation(scatterData), valign(0.0)), 
+	 				createXAxisTitle(scatterData.xAxisTitle)
 	 				], hshrink(0.95))
 	 		]
 		])));
 }
 
-private list[Figure] createXAxisMetricsInformation(int min, int max) {
+private list[Figure] createXAxisMetricsInformation(ScatterData scatterData) {
 
-	real minReal = toReal(min);
-	real maxReal = toReal(max);
+	real minReal = toReal(scatterData.minXValue);
+	real maxReal = toReal(scatterData.maxXValue);
 	real stepSize = ((maxReal-minReal)/toReal(DIVISIONS));
 	return [text(formatDecimalString(toString(x)), font(FONTNAME), fontSize(FONTSIZE_AXIS_METRIC), halign(1.0)) | 
 				real x <- [minReal + stepSize, minReal + stepSize + stepSize .. maxReal + 1]];
 	
 }
 
-private list[Figure] createYAxisMetricsInformation(int min, max) {
+private list[Figure] createYAxisMetricsInformation(ScatterData scatterData) {
 
-	real minReal = toReal(min);
-	real maxReal = toReal(max);
+	real minReal = toReal(scatterData.minYValue);
+	real maxReal = toReal(scatterData.maxYValue);
 	real stepSize = ((maxReal-minReal)/toReal(DIVISIONS));
 	
 	return [text(formatDecimalString(toString(x)), font(FONTNAME), fontSize(FONTSIZE_AXIS_METRIC), valign(0.0)) | 
