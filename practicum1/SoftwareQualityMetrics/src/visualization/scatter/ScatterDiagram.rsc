@@ -8,6 +8,7 @@ import IO;
 import Set;
 import Relation;
 import String;
+import vis::KeySym;
 
 private int DIVISIONS = 10;
 private int FONTSIZE_AXIS_METRIC = 8;
@@ -16,9 +17,28 @@ private int FONTSIZE_AXIS_TITLE = 11;
 
 public void main() {
 
-	createScatterDiagram();
+	createScatterDiagrams();
 	
 }
+
+private void createScatterDiagrams() {
+
+	render(
+	 			vcat([
+	 					createScatterDiagram(1),
+	 					getZoomedScatter()
+					 ], valign(1.0))
+		);
+
+}
+
+private Figure getZoomedScatter() {
+
+    return computeFigure (bool () { return true;}, Figure() {
+		return createScatterDiagram(1);
+    });
+
+} 
 
 private str getMethodInformation() {
 
@@ -28,32 +48,32 @@ private str getMethodInformation() {
 
 private Figure getNodeInformation() {
 
-	return box(text(getMethodInformation),[grow(1.1),resizable(false), pos(100, 100)]);
+	return box(text(getMethodInformation),[grow(1.1),resizable(false)]);
 
 }
 
-public Figure createGrid(set[tuple[int x, int y]] metrics, int minXValue, int maxXValue, int minYValue, int maxYValue) {
+public Figure createGrid(set[tuple[int x, int y]] metrics, int minXValue, int maxXValue, int minYValue, int maxYValue, int level) {
 
-	ellipses = [
+	dataPoints = [
 				ellipse(
 					[
 						halign(calculateAlignInGrid(metric.x, minXValue, maxXValue)), 
-						valign(1 - calculateAlignInGrid(metric.y, minYValue, maxYValue)), resizable(false), size(7), 
-						fillColor(arbColor),
-						mouseOver(getNodeInformation())
+						valign(1 - calculateAlignInGrid(metric.y, minYValue, maxYValue)), resizable(false), size(5), 
+						fillColor(arbColor)//,
+						//mouseOver(getNodeInformation())
 					]) | metric <- metrics
 				];
 	emptyGrid = grid([createGridRows()]);
-	filledGrid = overlay(emptyGrid + ellipses);
+	filledGrid = overlay(emptyGrid + dataPoints);
 	return filledGrid;
 	
 } 
 
-private void createScatterDiagram() {
+public Figure createScatterDiagram(int level) {
 
 	str xAxisTitle = "Complexity - McCabe values";
 	str yAxisTitle = "Unit Size";
-	set[tuple[int x, int y]] metrics = {<arbInt(100), arbInt(300)> | int x <- [1 .. 5]};
+	set[tuple[int x, int y]] metrics = {<arbInt(100), arbInt(300)> | int x <- [1 .. 1000]};
 	
 	set[int] xValues = domain(metrics); 
 	int maxXValue = max(xValues);
@@ -62,11 +82,9 @@ private void createScatterDiagram() {
 	int maxYValue = max(yValues);
 	int minYValue = min(yValues);
 	
-	print(toList(metrics));
-
-	render(box(grid([
+	return(box(grid([
 			[
-				box(createGrid(metrics, minXValue, maxXValue, minYValue, maxYValue), vshrink(0.95), hshrink(0.95)),
+				box(createGrid(metrics, minXValue, maxXValue, minYValue, maxYValue, level), vshrink(0.95), hshrink(0.95)),
 				hcat([
 					vcat(createYAxisMetricsInformation(minYValue, maxYValue), halign(0.0)),
 					vcat(createYAxisTitle(yAxisTitle), halign(0.0))
@@ -116,7 +134,13 @@ private list[Figure] createYAxisTitle(str theString) {
 
 private list[Figure] createGridRows() {
 
-	row = [box(lineWidth(solidLine())) | int x <- [1 .. DIVISIONS + 1]];
+	row = [box(lineWidth(1.0), 
+				lineStyle("dash"), 
+				onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
+					s = "<butnr>";
+					print(s);
+					return true;
+				})) | int x <- [1 .. DIVISIONS + 1]];
 	return [vcat(row) | int x <- [1 .. DIVISIONS + 1]];
 
 }
@@ -140,7 +164,7 @@ private real calculateAlignInGrid(int x, int min, int max) {
 
 private str formatDecimalString(str theString) {
 
-	str lastLetter = substring(theString, size(theString)-1); 
+	str lastLetter = substring(theString, size(theString) - 1); 
 	if (lastLetter == ".") {
 		return substring(theString, 0, size(theString)) + "0";
 	}
@@ -150,3 +174,30 @@ private str formatDecimalString(str theString) {
 	
 }
 
+
+public void bla() {
+    bool redraw = false;
+    str boxWidthProp = "";
+
+    Figure topBar = hcat([text("Width"), combo(["1", "2"], void(str s){ boxWidthProp = s; }, hshrink(0.1))
+    , button("Redraw", void() {redraw = true; }, resizable(false))], vshrink(0.05), hgap(5));
+
+    Figure getTreemap() {
+    return computeFigure(bool () { bool temp = redraw; redraw = false; return temp; }, Figure() {
+                int sz = 20;
+                if (boxWidthProp == "2")
+                    sz = 100;
+                b = box(size(sz, sz), fillColor("Red"), resizable(false));
+                t = text(str() {return "w: <sz>; prop: <boxWidthProp>"; });
+                Figures boxes = [];
+                boxes += b;
+                boxes += t;
+
+                //return pack(boxes, std(gap(5)));
+                return vcat([t,b]);
+            });
+    }
+
+    vc = vcat([topBar, getTreemap()]);
+    render(vc);
+}
