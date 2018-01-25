@@ -4,8 +4,14 @@ import vis::Figure;
 import vis::Render;
 import IO;
 import List;
+import vis::KeySym;
 
 import calc::Cache;
+
+alias TreeItem = tuple[calc::Cache::CacheItem item, bool collapsed];
+alias TreeStructure = list[TreeItem];
+
+private TreeStructure treeStructure = [];
 
 public void drawTree(){
 	println("Draw tree");
@@ -13,23 +19,58 @@ public void drawTree(){
 	//loc file = |file:///c:/temp/cach_test.txt|;	
 	loc file = |file:///c:/temp/cach_smallsql.txt|;
 	calc::Cache::ReadCache(file);
-	calc::Cache::CacheItem rootItem = calc::Cache::GetCachItemsWithParent(0)[0]; //There is always one root element
+	cache = calc::Cache::GetCache();
 	
-	root = box(fillColor(getColor(rootItem.itemType)), popup(getItemInfo(rootItem)));		   
-	children = getChildren(rootItem.id);
+	//default the items are collapsed excepted the root
+	treeStructure = [<item, true> | item <- cache]; 
+	//treeStructure[0].collapsed = false;
+	
+	startDrawTree();			 
+}
+
+private void startDrawTree(){
+	TreeItem rootItem = GetTreeItemsWithParent(0)[0]; //There is always one root element
+	//root = box(fillColor(getColor(rootItem.itemType)), popup(getItemInfo(rootItem)));
+	root = box(fillColor(getColor(rootItem.item.itemType)), clickProperty(rootItem.item.id), popup(getItemInfo(rootItem.item)));
+	
+	Figures children = [];	
+	if (!rootItem.collapsed){
+		println("b: <rootItem.collapsed>, <rootItem.item.id>");
+		children = getChildren(rootItem.item.id);
+	}
 	t = tree(root, children, std(size(50)), std(gap(20)));
 	
 	render(t);
 }
 
+private list[TreeItem] GetTreeItemsWithParent(int parentId){
+	return [item | item <- treeStructure, item.item.parentId == parentId];
+}
+
+private FProperty clickProperty(int id){
+	return onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers){		
+		treeStructure[id-1].collapsed = !treeStructure[id-1].collapsed;		
+		println("click <treeStructure[id-1]>");
+		startDrawTree();
+		
+		return true;
+	});
+}
+
 private Figures getChildren(int parentId){
-	items = calc::Cache::GetCachItemsWithParent(parentId);
-	
+	items = GetTreeItemsWithParent(parentId);
+		
 	Figures children = [];
 	for(item <- items){
-		root = box(fillColor(getColor(item.itemType)), popup(getItemInfo(item)));
-		
-		t = tree(root, getChildren(item.id), std(size(50)), std(gap(20)));
+		//root = box(fillColor(getColor(item.itemType)), popup(getItemInfo(item)));
+		root = box(fillColor(getColor(item.item.itemType)), clickProperty(item.item.id), popup(getItemInfo(item.item)));
+			
+		Figures c = [];
+		if (!item.collapsed){
+			c = getChildren(item.item.id);
+		}
+				
+		t = tree(root, c, std(size(50)), std(gap(20)));		
 		children += t;	
 	}
 	
