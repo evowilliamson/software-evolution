@@ -5,8 +5,7 @@ import vis::Render;
 import util::Math;
 import vis::examples::New;
 import IO;
-import Set;
-import Relation;
+import List;
 import String;
 import vis::KeySym;
 import visualization::scatter::Types;
@@ -15,18 +14,27 @@ private int DIVISIONS = 10;
 private int FONTSIZE_AXIS_METRIC = 8;
 private str FONTNAME = "Times-Roman";
 private int FONTSIZE_AXIS_TITLE = 11;
+private int SIZE_POINT_PARENT = 7;
+private int SIZE_POINT_ZOOM = 12;
 
-private ScatterData scatterData;
+private ScatterData parentScatterData;
+private ScatterData zoomedScatterData;
+private Quadrant selectedQuandrant = Quadrant(1,1);
+private str xAxisTitle;
+private str yAxisTitle;
 
 public void main() {
 
-	createScatterDiagrams();
+	createScatterDiagrams([DataPoint(arbInt(100), arbInt(300)) | int x <- [1 .. 1000]], "Complexity - McCabe values", "Unit Size");
 	
 }
 
-private void createScatterDiagrams() {
+private void createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, str yAxisTitle_) {
 
-	scatterData = createScatterData({<arbInt(100), arbInt(300)> | int x <- [1 .. 1000]}, "Complexity - McCabe values", "Unit Size");
+	xAxisTitle = xAxisTitle_; 
+	yAxisTitle = yAxisTitle_; 
+	parentScatterData = createScatterData(metrics);
+	updateScatterData();
 
 	render(
 	 			vcat([
@@ -39,14 +47,35 @@ private void createScatterDiagrams() {
 
 private Figure getZoomedScatter() {
 
-    return computeFigure (bool () { return true;}, Figure() {
-    
-    	// create scatterDataDetail
-    	
-    	return createScatterDiagram(true);
-    });
+    return computeFigure (
+    	bool () { 
+    		updateScatterData(); 
+    		return true;
+    	}, 
+    	Figure() {
+    		return createScatterDiagram(true);
+    	}
+    );
 
 } 
+
+private void updateScatterData() {
+	
+	int minXValueClickedQuadrant = toInt((selectedQuandrant.x - 1) * (toReal(parentScatterData.maxXValue) / toReal(DIVISIONS)));
+	int maxXValueClickedQuadrant = toInt(selectedQuandrant.x * (toReal(parentScatterData.maxXValue) / toReal(DIVISIONS)));
+	int minYValueClickedQuadrant = toInt(parentScatterData.maxYValue - (selectedQuandrant.y * (toReal(parentScatterData.maxYValue) / toReal(DIVISIONS))));
+	int maxYValueClickedQuadrant = toInt(parentScatterData.maxYValue - ((selectedQuandrant.y - 1) * (toReal(parentScatterData.maxYValue) / toReal(DIVISIONS))));
+
+	list[DataPoint] zoomedMetrics =  
+		[ DataPoint(t.x, t.y)
+			| DataPoint t <- parentScatterData.metrics, 
+					t.x >= minXValueClickedQuadrant && t.x <= maxXValueClickedQuadrant && 
+					t.y >= minYValueClickedQuadrant && t.y <= maxYValueClickedQuadrant 
+		];
+
+	zoomedScatterData = createScatterData(zoomedMetrics);
+
+}
 
 private str getMethodInformation() {
 
@@ -60,12 +89,12 @@ private Figure getNodeInformation() {
 
 }
 
-private ScatterData createScatterData(set[tuple[int x, int y]] metrics, str xAxisTitle, str yAxisTitle) {
+private ScatterData createScatterData(list[DataPoint] metrics) {
 
-	set[int] xValues = domain(metrics); 
+	list[int] xValues = [metric.x | DataPoint metric <- metrics]; 
 	int maxXValue = max(xValues);
 	int minXValue = min(xValues);
-	set[int] yValues = range(metrics); 
+	list[int] yValues = [metric.y | DataPoint metric <- metrics];
 	int maxYValue = max(yValues);
 	int minYValue = min(yValues);
 	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle);
@@ -73,6 +102,11 @@ private ScatterData createScatterData(set[tuple[int x, int y]] metrics, str xAxi
 }
 
 public Figure createScatterDiagram(bool isZoom) {
+
+	ScatterData scatterData = parentScatterData;
+	if (isZoom) {
+		scatterData = zoomedScatterData;
+	}
 
 	return(box(grid([
 			[
@@ -97,8 +131,9 @@ public Figure createGrid(ScatterData scatterData, bool isZoom) {
 				ellipse(
 					[
 						halign(calculateAlignInGrid(metric.x, scatterData.minXValue, scatterData.maxXValue)), 
-						valign(1 - calculateAlignInGrid(metric.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), size(5), 
-						fillColor(arbColor)
+						valign(1 - calculateAlignInGrid(metric.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), 
+						size(getPointSize(isZoom)), 
+						fillColor("gray")
 					]) | metric <- scatterData.metrics
 				];
 	emptyGrid = grid([createGridRows(isZoom)]);
@@ -107,28 +142,12 @@ public Figure createGrid(ScatterData scatterData, bool isZoom) {
 	
 } 
 
-/*private list[Figure] createGridRows(bool isZoom) {
-
-	list[Figure] row;
-	if (isZoom) {
-		row = [box(lineWidth(1.0), 
-					lineStyle("dash")) | int x <- [1 .. DIVISIONS + 1]];
-		return [vcat(row) | int x <- [1 .. DIVISIONS + 1]];					
-	}
-	else {
-		a = 100;
-		return [vcat([box(lineWidth(x), 
-					lineStyle("dash"), 
-					onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
-						s = "<butnr>";
-						println(x);
-						println(y);
-						return true;
-					})) | int y <- [1 .. DIVISIONS + 1]]) | int x <- [1 .. DIVISIONS + 1]];					
-	}
-
-}*/
-
+private int getPointSize(bool isZoom) {
+	if (isZoom) 
+		return SIZE_POINT_ZOOM;
+	else 
+		return SIZE_POINT_PARENT;
+}
 
 private list[Figure] createGridRows(bool isZoom) {
 
@@ -139,26 +158,20 @@ private list[Figure] createGridRows(bool isZoom) {
 		return [vcat(row) | int x <- [1 .. DIVISIONS + 1]];					
 	}
 	else {
-		list[Figure] vcats = [];
-		int a = 100;
-		for (int x <- [1 .. DIVISIONS + 1]) {
-			a = a + 1;
-			list[Figure] boxes = [];
-			for (int y <- [1 .. DIVISIONS + 1]) {
-				boxes = boxes +  
-					box(lineWidth(x), 
+		a = 100;
+		return [vcat([box(lineWidth(1.0), 
 					lineStyle("dash"), 
-					onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
-						s = "<butnr>";
-						println(a);
-						println(y);
-						return true;
-					}))	;				
-			};
-			vcats = vcats + vcat(boxes);			
-		};
-		return vcats;
-	};
+					clickScatterQuadrant(x, y)) | int y <- [1 .. DIVISIONS + 1]]) | int x <- [1 .. DIVISIONS + 1]];					
+	}
+
+}
+
+private FProperty clickScatterQuadrant(int x, int y) {
+
+	return onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers){
+		selectedQuandrant = selectQuadrant(x, y);
+		return true;
+	});
 
 }
 
@@ -195,6 +208,10 @@ private list[Figure] createYAxisTitle(str theString) {
 	
 }
 
+private Quadrant selectQuadrant(int x, int y) {
+	return Quadrant(x, y);
+}
+
 private real solidLine() {
 	return 1.0;
 }
@@ -222,32 +239,4 @@ private str formatDecimalString(str theString) {
 		return theString;
 	}	
 	
-}
-
-
-public void bla() {
-    bool redraw = false;
-    str boxWidthProp = "";
-
-    Figure topBar = hcat([text("Width"), combo(["1", "2"], void(str s){ boxWidthProp = s; }, hshrink(0.1))
-    , button("Redraw", void() {redraw = true; }, resizable(false))], vshrink(0.05), hgap(5));
-
-    Figure getTreemap() {
-    return computeFigure(bool () { bool temp = redraw; redraw = false; return temp; }, Figure() {
-                int sz = 20;
-                if (boxWidthProp == "2")
-                    sz = 100;
-                b = box(size(sz, sz), fillColor("Red"), resizable(false));
-                t = text(str() {return "w: <sz>; prop: <boxWidthProp>"; });
-                Figures boxes = [];
-                boxes += b;
-                boxes += t;
-
-                //return pack(boxes, std(gap(5)));
-                return vcat([t,b]);
-            });
-    }
-
-    vc = vcat([topBar, getTreemap()]);
-    render(vc);
 }

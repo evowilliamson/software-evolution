@@ -1,7 +1,7 @@
 module visualization::scatter::Types
 
 data ScatterData = ScatterData(
-	set[tuple[int x, int y]] metrics, 
+	list[DataPoint] metrics, 
 	int maxXValue, 
 	int minXValue, 
 	int maxYValue, 
@@ -9,3 +9,6 @@ data ScatterData = ScatterData(
 	str xAxisTitle,
 	str yAxisTitle
 	);
+
+data Quadrant = Quadrant(int x, int y);
+data DataPoint = DataPoint(int x, int y);
