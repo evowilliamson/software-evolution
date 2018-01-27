@@ -16,6 +16,8 @@ private int FONTSIZE_AXIS_METRIC = 8;
 private str FONTNAME = "Times-Roman";
 private int FONTSIZE_AXIS_TITLE = 11;
 
+private ScatterData scatterData;
+
 public void main() {
 
 	createScatterDiagrams();
@@ -24,9 +26,11 @@ public void main() {
 
 private void createScatterDiagrams() {
 
+	scatterData = createScatterData({<arbInt(100), arbInt(300)> | int x <- [1 .. 1000]}, "Complexity - McCabe values", "Unit Size");
+
 	render(
 	 			vcat([
-	 					createScatterDiagram(1),
+	 					createScatterDiagram(false),
 	 					getZoomedScatter()
 					 ], valign(1.0))
 		);
@@ -36,7 +40,10 @@ private void createScatterDiagrams() {
 private Figure getZoomedScatter() {
 
     return computeFigure (bool () { return true;}, Figure() {
-		return createScatterDiagram(1);
+    
+    	// create scatterDataDetail
+    	
+    	return createScatterDiagram(true);
     });
 
 } 
@@ -53,23 +60,6 @@ private Figure getNodeInformation() {
 
 }
 
-public Figure createGrid(ScatterData scatterData) {
-
-	dataPoints = [
-				ellipse(
-					[
-						halign(calculateAlignInGrid(metric.x, scatterData.minXValue, scatterData.maxXValue)), 
-						valign(1 - calculateAlignInGrid(metric.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), size(5), 
-						fillColor(arbColor)//,
-						//mouseOver(getNodeInformation())
-					]) | metric <- scatterData.metrics
-				];
-	emptyGrid = grid([createGridRows()]);
-	filledGrid = overlay(emptyGrid + dataPoints);
-	return filledGrid;
-	
-} 
-
 private ScatterData createScatterData(set[tuple[int x, int y]] metrics, str xAxisTitle, str yAxisTitle) {
 
 	set[int] xValues = domain(metrics); 
@@ -82,13 +72,11 @@ private ScatterData createScatterData(set[tuple[int x, int y]] metrics, str xAxi
 
 }
 
-public Figure createScatterDiagram(int level) {
+public Figure createScatterDiagram(bool isZoom) {
 
-	scatterData = createScatterData({<arbInt(100), arbInt(300)> | int x <- [1 .. 1000]}, "Complexity - McCabe values", "Unit Size");
-	
 	return(box(grid([
 			[
-				box(createGrid(scatterData), vshrink(0.95), hshrink(0.95)),
+				box(createGrid(scatterData, isZoom), vshrink(0.95), hshrink(0.95)),
 				hcat([
 					vcat(createYAxisMetricsInformation(scatterData), halign(0.0)),
 					vcat(createYAxisTitle(scatterData.yAxisTitle), halign(0.0))
@@ -101,6 +89,77 @@ public Figure createScatterDiagram(int level) {
 	 				], hshrink(0.95))
 	 		]
 		])));
+}
+
+public Figure createGrid(ScatterData scatterData, bool isZoom) {
+
+	dataPoints = [
+				ellipse(
+					[
+						halign(calculateAlignInGrid(metric.x, scatterData.minXValue, scatterData.maxXValue)), 
+						valign(1 - calculateAlignInGrid(metric.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), size(5), 
+						fillColor(arbColor)
+					]) | metric <- scatterData.metrics
+				];
+	emptyGrid = grid([createGridRows(isZoom)]);
+	filledGrid = overlay(emptyGrid + dataPoints);
+	return filledGrid;
+	
+} 
+
+/*private list[Figure] createGridRows(bool isZoom) {
+
+	list[Figure] row;
+	if (isZoom) {
+		row = [box(lineWidth(1.0), 
+					lineStyle("dash")) | int x <- [1 .. DIVISIONS + 1]];
+		return [vcat(row) | int x <- [1 .. DIVISIONS + 1]];					
+	}
+	else {
+		a = 100;
+		return [vcat([box(lineWidth(x), 
+					lineStyle("dash"), 
+					onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
+						s = "<butnr>";
+						println(x);
+						println(y);
+						return true;
+					})) | int y <- [1 .. DIVISIONS + 1]]) | int x <- [1 .. DIVISIONS + 1]];					
+	}
+
+}*/
+
+
+private list[Figure] createGridRows(bool isZoom) {
+
+	list[Figure] row;
+	if (isZoom) {
+		row = [box(lineWidth(1.0), 
+					lineStyle("dash")) | int x <- [1 .. DIVISIONS + 1]];
+		return [vcat(row) | int x <- [1 .. DIVISIONS + 1]];					
+	}
+	else {
+		list[Figure] vcats = [];
+		int a = 100;
+		for (int x <- [1 .. DIVISIONS + 1]) {
+			a = a + 1;
+			list[Figure] boxes = [];
+			for (int y <- [1 .. DIVISIONS + 1]) {
+				boxes = boxes +  
+					box(lineWidth(x), 
+					lineStyle("dash"), 
+					onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
+						s = "<butnr>";
+						println(a);
+						println(y);
+						return true;
+					}))	;				
+			};
+			vcats = vcats + vcat(boxes);			
+		};
+		return vcats;
+	};
+
 }
 
 private list[Figure] createXAxisMetricsInformation(ScatterData scatterData) {
@@ -134,19 +193,6 @@ private list[Figure] createYAxisTitle(str theString) {
 
 	return 	[text(replaceAll(theString, " ", "\n"), font(FONTNAME), fontSize(FONTSIZE_AXIS_TITLE), fontBold(true), valign(0.0))];
 	
-}
-
-private list[Figure] createGridRows() {
-
-	row = [box(lineWidth(1.0), 
-				lineStyle("dash"), 
-				onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
-					s = "<butnr>";
-					print(s);
-					return true;
-				})) | int x <- [1 .. DIVISIONS + 1]];
-	return [vcat(row) | int x <- [1 .. DIVISIONS + 1]];
-
 }
 
 private real solidLine() {
