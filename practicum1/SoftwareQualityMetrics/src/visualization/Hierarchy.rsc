@@ -8,6 +8,7 @@ import vis::KeySym;
 import util::Math; 
 
 import calc::Cache;
+import visualization::Helper;
 
 alias TreeItem = tuple[calc::Cache::CacheItem item, bool collapsed];
 alias TreeStructure = list[TreeItem];
@@ -60,7 +61,7 @@ public Figure comboTest(){
 private Figure createTree(){
 	TreeItem rootItem = GetTreeItemsWithParent(0)[0]; //There is always one root element
 	//root = box(fillColor(getColor(rootItem.itemType)), popup(getItemInfo(rootItem)));
-	root = box(fillColor(getColor(rootItem.item.itemType)), hsize(BoxHeight), vsize(BoxWidth), clickProperty(rootItem.item.id), popup(getItemInfo(rootItem.item)));
+	root = box( fillColor(visualization::Helper::getColor(rootItem.item.itemType)), hsize(BoxHeight), vsize(BoxWidth), clickProperty(rootItem.item.id), popup(getItemInfo(rootItem.item)));
 	
 	Figures children = [];	
 	if (!rootItem.collapsed){
@@ -133,7 +134,6 @@ private str getItemInfo(calc::Cache::CacheItem item){
 	//Extra Package info
 	if (item.itemType == 1){
 		info += "\r\nAmount of files: <itemTypeCount(2, item.id)>";
-		info += "\r\nAmount of methods: <itemTypeCount(4, item.id)>";
 	}
 	
 	//Extra File info
@@ -148,20 +148,6 @@ private str getItemInfo(calc::Cache::CacheItem item){
 	}
 		
 	return info;
-}
-
-private str getColor(int itemType){	
-	str color = "";
-
-	switch(itemType){
-		case 0: color = "green";
-		case 1: color = "blue";
-		case 2: color = "red";
-		case 3: color = "darkgrey";
-		case 4: color = "gold";
-	}
-	
-	return color;
 }
 
 /**
