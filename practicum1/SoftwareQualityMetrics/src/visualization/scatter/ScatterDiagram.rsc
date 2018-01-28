@@ -25,23 +25,21 @@ private str yAxisTitle;
 
 public void main() {
 
-	createScatterDiagrams([DataPoint(arbInt(100), arbInt(300)) | int x <- [1 .. 1000]], "Complexity - McCabe values", "Unit Size");
+	render(createScatterDiagrams([DataPoint(arbInt(100), arbInt(300)) | int x <- [1 .. 1000]], "Complexity - McCabe values", "Unit Size"));
 	
 }
 
-private void createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, str yAxisTitle_) {
+public Figure createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, str yAxisTitle_) {
 
 	xAxisTitle = xAxisTitle_; 
 	yAxisTitle = yAxisTitle_; 
 	parentScatterData = createScatterData(metrics);
 	updateScatterData();
 
-	render(
-	 			vcat([
+	return vcat([
 	 					createScatterDiagram(false),
 	 					getZoomedScatter()
-					 ], valign(1.0))
-		);
+					 ], valign(1.0));
 
 }
 
