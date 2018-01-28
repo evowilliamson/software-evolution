@@ -9,6 +9,8 @@ import util::Math;
 
 import calc::Cache;
 import visualization::Helper;
+import visualization::scatter::ScatterDiagram;
+import visualization::scatter::Types;
 
 alias TreeItem = tuple[calc::Cache::CacheItem item, bool collapsed];
 alias TreeStructure = list[TreeItem];
@@ -19,6 +21,7 @@ private int BoxHeight = 200; //default box Height
 private int BoxWidth = 200; //default box width
 private int MinBoxHeight = 5;
 private int MinBoxWidth = 5;  
+private list[DataPoint] scatterDataPoints = [DataPoint(arbInt(100), arbInt(300)) | int x <- [1 .. arbInt(1000)]];
 
 public void drawPage(){
 	println("Draw page");
@@ -36,8 +39,7 @@ public void drawPage(){
 }
 
 private void startDrawing(){
-	t = createTree();
-	render(t);
+	render(createMainPane());
 	
 	//c = combo(["A","B","C","D"], void(str s){ println("c: <s>");}, vshrink(0.2));
 	//c = box(comboTest(),hshrink(0.2));
@@ -68,9 +70,33 @@ private Figure createTree(){
 		//println("b: <rootItem.collapsed>, <rootItem.item.id>");
 		children = getChildren(rootItem.item.id);
 	}
-	t = tree(root, children, std(gap(20)));
 	
-	return t;
+	return tree(root, children, std(gap(20)));
+}
+
+private Figure createMainPane(){
+
+	mainPane = vcat([
+	 					createTree(),
+	 					getScatterDiagram()
+					 ], valign(1.0));
+	
+	return mainPane;
+}
+
+private Figure getScatterDiagram() {
+
+	print("updateMethodMetrics() in getScatterDiagram()\n"); 
+    updateMethodMetrics(); 
+    print("createScatterDiagrams() in getScatterDiagram()\n"); 
+    return createScatterDiagrams(scatterDataPoints, "Complexity - McCabe values", "Unit Size");
+
+} 
+
+private void updateMethodMetrics() {
+
+	scatterDataPoints = [DataPoint(arbInt(100), arbInt(300)) | int x <- [1 .. arbInt(1000)]];
+	
 }
 
 private list[TreeItem] GetTreeItemsWithParent(int parentId){
@@ -81,6 +107,7 @@ private FProperty clickProperty(int id){
 	return onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers){		
 		treeStructure[id-1].collapsed = !treeStructure[id-1].collapsed;		
 		//println("click <treeStructure[id-1]>");
+		print("clicked");
 		startDrawing();
 		
 		return true;
