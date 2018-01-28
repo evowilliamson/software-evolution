@@ -40,7 +40,7 @@ real MAXREAL = 9999999.0;
 Threshold for de CC of a unit
 See first table on page 26 of the reader
 **/
-private ThresholdRanksEx thresholdCCUnit = [
+public ThresholdRanksEx thresholdCCUnit = [
 		<11, SIMPLE, 5>,
 		<21, MODERATE, 4>,
 		<50, HIGH, 3>,		
@@ -236,7 +236,7 @@ public str getUnitSizeMessage(num unitSizeRank){
 Calculate the ccyclomatic complexity rank number. 
 Remark: Use the threshold thresholdCCTotal to get the cc text representation 
 **/
-private num calculateCCRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh){
+public num calculateCCRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh){
 	//Calculate the percentages of LOC per risk level
 	locTotal = toReal(totalProjectLOC);
 	real simpleLocPerc = (locSimple/locTotal) * 100;
@@ -302,7 +302,7 @@ private str getCCRank(int cc){
   
   See "Benchmark-based Aggregation of Metrics to Rating", T. L. Alves, J.P. Correia and J. Visser Table IIIa.
 **/
-private str getUnitSizeLocRank(int linesOfCode){
+public str getUnitSizeLocRank(int linesOfCode){
 	return getRank(linesOfCode, thresholdLocUnitSize);
 }
 

@@ -61,7 +61,11 @@ public Figure comboTest(){
 private Figure createTree(){
 	TreeItem rootItem = GetTreeItemsWithParent(0)[0]; //There is always one root element
 	//root = box(fillColor(getColor(rootItem.itemType)), popup(getItemInfo(rootItem)));
-	root = box( fillColor(visualization::Helper::getColor(rootItem.item.itemType)), hsize(BoxHeight), vsize(BoxWidth), clickProperty(rootItem.item.id), popup(getItemInfo(rootItem.item)));
+	root = box( fillColor(visualization::Helper::getColor(rootItem.item.itemType)), 
+		hsize(BoxHeight), 
+		vsize(BoxWidth), 
+		clickProperty(rootItem.item.id), 
+		popup(getItemInfo(rootItem.item, [treeItem.item | treeItem <- treeStructure])));
 	
 	Figures children = [];	
 	if (!rootItem.collapsed){
@@ -103,7 +107,7 @@ private Figures getChildren(int parentId){
 			sizeWidth = MinBoxWidth;
 		}
 		
-		root = box(fillColor(getColor(item.item.itemType)), vsize(ccHeight), hsize(sizeWidth), clickProperty(item.item.id), popup(getItemInfo(item.item)));
+		root = box(fillColor(getColor(item.item.itemType)), vsize(ccHeight), hsize(sizeWidth), clickProperty(item.item.id), popup(getItemInfo(item.item, [treeItem.item | treeItem <- treeStructure])));
 			
 		Figures c = [];
 		if (!item.collapsed){
@@ -117,55 +121,12 @@ private Figures getChildren(int parentId){
 	return children; 
 } 
 
-private str getItemInfo(calc::Cache::CacheItem item){
-	str info = "";
-
-	switch(item.itemType){
-		case 0: info = "Application";
-		case 1: info = "Package: <item.name>";
-		case 2: info = "File: <item.name>";
-		case 3: info = "Class: <item.name>";
-		case 4: info = "Method: <item.name>";		
-	}
-	
-	info +=  "\r\nSize: <item.size>";
-	info +=  "\r\nComplexity: <item.complexity>";
-	
-	//Extra Package info
-	if (item.itemType == 1){
-		info += "\r\nAmount of files: <itemTypeCount(2, item.id)>";
-	}
-	
-	//Extra File info
-	if (item.itemType == 2){
-		//Duplication only for file
-		info +=  "\r\nDuplication: <item.duplication>";
-	}
-	
-	//Extra class info
-	if (item.itemType == 3){
-		info += "\r\nAmount of methods: <itemTypeCount(4, item.id)>";
-	}
-		
-	return info;
-}
-
-/**
-Count the amount of item for a specific type. Start counting from a given place in the cache.
-If startId is 0, then the whole cache is visited.
-**/
+/*
 public int itemTypeCount(int itemType, int startId){
 	items = [treeItem |  treeItem <- treeStructure, treeItem.item.itemType == itemType, treeItem.item.parentId == startId];
 	return List::size(items); 
 }
-
-/**
-source: https://stackoverflow.com/questions/20299595/hover-tooltiptext-in-rascal-figure
-**/
-public FProperty popup(str S){
- return mouseOver(box(text(S), fillColor("lightyellow"),
- grow(1.2),resizable(false)));
-}
+*/
 
 public void main(){
 	drawPage();
