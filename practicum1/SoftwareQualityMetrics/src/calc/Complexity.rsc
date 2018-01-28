@@ -27,10 +27,10 @@ import calc::Cache;
 
 str METRIC_NAME = "Complexity";
 
-private str SIMPLE = "simple"; 
-private str MODERATE = "moderate";
-private str HIGH = "high";
-private str VERY_HIGH = "very high";
+public str SIMPLE = "simple"; 
+public str MODERATE = "moderate";
+public str HIGH = "high";
+public str VERY_HIGH = "very high";
 
 //Define the thresholds for calculatibng the Cyclomatic Complexity and the Unit size
 int MAXINT = 9999999;
@@ -243,7 +243,7 @@ public num calculateCCRank(num totalProjectLOC, real locSimple, real locModerate
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	calc::Logger::doLog("CC loc Total methods: <locTotal>, loc Simple: (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+	calc::Logger::doLog("CC loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 			
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdCCModerate);

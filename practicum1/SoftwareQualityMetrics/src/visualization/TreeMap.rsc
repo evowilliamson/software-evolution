@@ -83,7 +83,7 @@ private Figures getChildrenOfItemType(){
 		if (item.itemType == calc::Cache::CLASS){
 			children += box(
 		    	area(itemArea),
-				fillColor(calculateColor(calculateCCRankForClass(item.id), calc::Complexity::thresholdCCUnit)), 
+				fillColor(calculateCCColorForClass(item.id)), 
 				visualization::Helper::popup(getItemInfo(item, cache)));
 		}
 		else{		
@@ -97,8 +97,8 @@ private Figures getChildrenOfItemType(){
 	return children;
 }
 
-private num calculateCCRankForClass(int classId){
-	classMethods = [item | item <- cache, cache.parentId == classId];
+private Color calculateCCColorForClass(int classId){
+	classMethods = [item | item <- cache, item.parentId == classId];
 	
 	real simpleLoc = 0.0;
 	real moderateLoc = 0.0;
@@ -107,23 +107,35 @@ private num calculateCCRankForClass(int classId){
 	
 	for (classMethod <- classMethods){
 		//Determine unit size of the method
-		str unitSizeRank = calc::Complexity::getUnitSizeLocRank(locMethod);
+		str unitSizeRank = calc::Complexity::getUnitSizeLocRank(classMethod.size);
 		println("name: <classMethod.name>, size: <classMethod.size>, rank: <unitSizeRank>, cc: <classMethod.complexity>");
 		
 		//Add loc of method to relative unti size category
 		switch(unitSizeRank){
-			case MODERATE: moderateLoc += classMethod.size;
-			case HIGH: highLoc += classMethod.size;
-			case VERY_HIGH: veryHighLoc += classMethod.size;
-			default: simpleLoc += classMethod.size;
+			case "simple": simpleLoc += classMethod.size;
+			case "moderate": moderateLoc += classMethod.size;
+			case "high": highLoc += classMethod.size;
+			case "very high": veryHighLoc += classMethod.size;			
 		}
 	}
 	
+	from = color("green");
+	to = color("red");
+	percentage = 0.0;
 	if (cache[classId-1].size > 0){
-		return calc::Complexity::calculateCCRank(cache[classId-1].size, simpleLoc, moderateLoc, highLoc, veryHighLoc);
+		rank = calc::Complexity::calculateCCRank(cache[classId-1].size, simpleLoc, moderateLoc, highLoc, veryHighLoc);
+		println("rank <rank>");
+		switch(rank){
+			case 2: percentage = 0.0;
+			case 3: percentage = 0.25;
+			case 4: percentage = 0.5;
+			case 5: percentage = 0.75;
+			case 6: percentage = 1.0; 
+		}
+		return interpolateColor(from, to, percentage);
 	}
 	else{
-		return 1;
+		return from;
 	}	
 }
 
