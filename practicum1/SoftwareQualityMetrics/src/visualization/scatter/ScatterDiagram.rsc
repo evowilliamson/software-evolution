@@ -19,22 +19,25 @@ private int SIZE_POINT_ZOOM = 12;
 
 private ScatterData parentScatterData;
 private ScatterData zoomedScatterData;
-private Quadrant selectedQuandrant = Quadrant(1,1);
+private Quadrant selectedQuandrant;
 private str xAxisTitle;
 private str yAxisTitle;
 
 public void main() {
 
-	render(createScatterDiagrams([DataPoint(arbInt(100), arbInt(300)) | int x <- [1 .. 1000]], "Complexity - McCabe values", "Unit Size"));
+//	render(createScatterDiagrams([DataPoint(arbInt(10), arbInt(10)) | int x <- [1 .. 10]], "Complexity - McCabe values", "Unit Size"));
+	render(createScatterDiagrams([DataPoint(1,1), DataPoint(10,1), DataPoint(1,10), DataPoint(10,10)], "Complexity - McCabe values", "Unit Size"));
 	
 }
 
 public Figure createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, str yAxisTitle_) {
 
+	selectedQuandrant = Quadrant(1,1);
+	print("entered createScatterDiagrams()\n");
 	xAxisTitle = xAxisTitle_; 
 	yAxisTitle = yAxisTitle_; 
 	parentScatterData = createScatterData(metrics);
-	updateScatterData();
+	updateScatterDataForZoom();
 
 	return vcat([
 	 					createScatterDiagram(false),
@@ -45,9 +48,10 @@ public Figure createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, st
 
 private Figure getZoomedScatter() {
 
+	print("entered getZoomedScatter()\n");
     return computeFigure (
     	bool () { 
-    		updateScatterData(); 
+    		updateScatterDataForZoom(); 
     		return true;
     	}, 
     	Figure() {
@@ -57,12 +61,24 @@ private Figure getZoomedScatter() {
 
 } 
 
-private void updateScatterData() {
+private void updateScatterDataForZoom() {
+
+	print("entered updateScatterDataForZoom()\n");
+
+	print("quadrant x\n");
+	print(selectedQuandrant.x);
+	print("\nquadrant y\n");
+	print(selectedQuandrant.y);
 	
-	int minXValueClickedQuadrant = toInt((selectedQuandrant.x - 1) * (toReal(parentScatterData.maxXValue) / toReal(DIVISIONS)));
-	int maxXValueClickedQuadrant = toInt(selectedQuandrant.x * (toReal(parentScatterData.maxXValue) / toReal(DIVISIONS)));
-	int minYValueClickedQuadrant = toInt(parentScatterData.maxYValue - (selectedQuandrant.y * (toReal(parentScatterData.maxYValue) / toReal(DIVISIONS))));
-	int maxYValueClickedQuadrant = toInt(parentScatterData.maxYValue - ((selectedQuandrant.y - 1) * (toReal(parentScatterData.maxYValue) / toReal(DIVISIONS))));
+	int minXValueClickedQuadrant = floor(toReal(selectedQuandrant.x - 1) * (toReal(parentScatterData.maxXValue) / toReal(DIVISIONS)));
+	int maxXValueClickedQuadrant = ceil(toReal(selectedQuandrant.x * (toReal(parentScatterData.maxXValue) / toReal(DIVISIONS))));
+	int minYValueClickedQuadrant = floor(toReal(parentScatterData.maxYValue - (selectedQuandrant.y * (toReal(parentScatterData.maxYValue) / toReal(DIVISIONS)))));
+	int maxYValueClickedQuadrant = ceil(toReal(parentScatterData.maxYValue - ((selectedQuandrant.y - 1) * (toReal(parentScatterData.maxYValue) / toReal(DIVISIONS)))));
+
+	print("minXValueClickedQuadrant "); print(minXValueClickedQuadrant); print("\n"); 
+	print("maxXValueClickedQuadrant "); print(maxXValueClickedQuadrant); print("\n");
+	print("minYValueClickedQuadrant "); print(minYValueClickedQuadrant); print("\n");
+	print("maxYValueClickedQuadrant "); print(maxYValueClickedQuadrant); print("\n");
 
 	list[DataPoint] zoomedMetrics =  
 		[ DataPoint(t.x, t.y)
@@ -70,8 +86,22 @@ private void updateScatterData() {
 					t.x >= minXValueClickedQuadrant && t.x <= maxXValueClickedQuadrant && 
 					t.y >= minYValueClickedQuadrant && t.y <= maxYValueClickedQuadrant 
 		];
+	
+	print("metrics\n");
+	print(parentScatterData);
+	print("before loop\n");
+	print("size zoomedMetrics:\n");
+	print(size(zoomedMetrics));
+	print("\n");
+	print(zoomedMetrics);
+	for (DataPoint x <- zoomedMetrics) {
+		print("x: <x.x>, y: <x.y>\n");
+	}
+	print("after loop");
 
 	zoomedScatterData = createScatterData(zoomedMetrics);
+	
+	print("exit updateScatterDataForZoom()\n");
 
 }
 
@@ -89,17 +119,47 @@ private Figure getNodeInformation() {
 
 private ScatterData createScatterData(list[DataPoint] metrics) {
 
-	list[int] xValues = [metric.x | DataPoint metric <- metrics]; 
-	int maxXValue = max(xValues);
-	int minXValue = min(xValues);
-	list[int] yValues = [metric.y | DataPoint metric <- metrics];
-	int maxYValue = max(yValues);
-	int minYValue = min(yValues);
-	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle);
+	print("entered createScatterData()\n");
+	print("size metrics:\n");
+	print(size(metrics));
+	print("\n");
+
+	int minXValue = 0;
+	int maxXValue = 0;
+	int maxYValue = 0;
+	int minYValue = 0;
+	
+	if (size(metrics) != 0) {
+		list[int] xValues = [metric.x | DataPoint metric <- metrics]; 
+		print("inside createScatterData() 1\n");
+		minXValue = min(xValues);
+		print("inside createScatterData() 1b\n");
+		maxXValue = max(xValues);
+		print("inside createScatterData() 1a\n");
+		list[int] yValues = [metric.y | DataPoint metric <- metrics];
+		print("inside createScatterData() 1c\n");
+		maxYValue = max(yValues);
+		minYValue = min(yValues);
+		print("inside createScatterData() 3\n");
+	}
+	
+	//s = ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle);
+	/*for (DataPoint x <- metrics) {
+		print("x: <x.x>, y: <x.y>\n");
+	}*/
+	print(size(metrics));
+
+	a = [DataPoint(arbInt(100), arbInt(300)) | DataPoint x <- metrics];
+	//s = ScatterData(a, 100, 200, 300, 100, "dfdf", "dsfdfd");
+	s = ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle);
+
+	return s; 
 
 }
 
 public Figure createScatterDiagram(bool isZoom) {
+
+	print("entered createScatterDiagram(), isZoom: "); print(isZoom); print("\n");
 
 	ScatterData scatterData = parentScatterData;
 	if (isZoom) {

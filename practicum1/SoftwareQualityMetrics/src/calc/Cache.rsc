@@ -17,6 +17,7 @@ duplication: the duplication of the package, class or method
 **/
 alias CacheItem = tuple[int id, int itemType, str name, int parentId, int size, int complexity, int duplication];
 alias Cache = list[CacheItem];
+alias MethodCache = map[int, Cache]; 
 
 //Cache item types
 public int APPLICATION = 0;
@@ -25,7 +26,56 @@ public int FILE = 2;
 public int CLASS = 3;
 public int METHOD = 4;
 
+private int ROOT_ITEM = 0;
+
 private Cache cache = [];
+private MethodCache methodCache = ();
+
+/*
+	Createst the method cache. Each entry in the cache will contain the methods of its own plus the methods of its children
+	returns± the cache that contains per entry, the accumulated methods
+*/
+public MethodCache createMethodCache() {
+
+	getMethodsInTree(cache[ROOT_ITEM]);
+	return methodCache;
+	
+}
+
+/*
+	Recursive method that retrieves the methods of a cache item (of the general cache) and stores the accumulated methods
+	in a seperate cache
+	@cacheItem: the cache item for which methods are being stored in the methods cache
+*/
+private void getMethodsInTree(CacheItem cacheItem) {
+	
+	Cache methods = getMethods(cacheItem.id);
+	childs = [item | item <- cache, item.parentId == cacheItem.id];
+	methodCache = methodCache + (cacheItem.id: []);
+	for (child <- childs) {
+		if (child.itemType == METHOD) {
+			// Add itself to the parent
+			methodCache = methodCache + (child.parentId: methodCache[child.parentId] + child);
+		}
+		else {
+			// First traverse the tree
+			getMethodsInTree(child);
+			methodCache = methodCache + (child.parentId: methodCache[child.parentId] + methodCache[child.id]);
+		}
+	}
+	
+}
+
+/*
+	Get the methods that belong to the class that is represented by the id that is passed to the method
+	@id: id of the class
+	returns: the list of cacheItems (method)
+*/
+private Cache getMethods(int id) {
+
+	return [item | item <- cache, item.parentId == id && item.itemType == METHOD];
+
+}
 
 /**
 Get a item form the cache. If item doesn't exist then the item will be created.
@@ -171,3 +221,23 @@ private CacheItem GetCachItem(int id){
 	return item[0];	
 }
 
+public void main(){
+//	drawPage();
+	
+	loc file = |file:///c:/temp/cach_smallsql.txt|;
+	calc::Cache::ReadCache(file);
+	cache = calc::Cache::GetCache();
+	methodCache = createMethodCache();
+	print("\nsize\n");
+	print(size(methodCache[3]));
+
+	print("\nsize\n");
+	print(size(methodCache[17]));
+
+	print("\nsize\n");
+	print(size(methodCache[122]));
+
+	print("\nsize\n");
+	print(size(methodCache[1]));
+
+}

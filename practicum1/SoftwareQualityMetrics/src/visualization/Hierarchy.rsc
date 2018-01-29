@@ -6,7 +6,7 @@ import IO;
 import List;
 import vis::KeySym;
 import util::Math; 
-
+import Map;
 import calc::Cache;
 import visualization::Helper;
 import visualization::scatter::ScatterDiagram;
@@ -21,15 +21,19 @@ private int BoxHeight = 200; //default box Height
 private int BoxWidth = 200; //default box width
 private int MinBoxHeight = 5;
 private int MinBoxWidth = 5;  
-private list[DataPoint] scatterDataPoints = [DataPoint(arbInt(100), arbInt(300)) | int x <- [1 .. arbInt(1000)]];
+private list[DataPoint] scatterDataPoints = [];
+private MethodCache methodCache = ();
 
 public void drawPage(){
 	println("Draw page");
 	
-	//loc file = |file:///c:/temp/cach_test.txt|;	
-	loc file = |file:///c:/temp/cach_smallsql.txt|;
+	loc file = |file:///c:/temp/cach_test.txt|;	
+	//loc file = |file:///c:/temp/cach_smallsql.txt|;
 	calc::Cache::ReadCache(file);
 	cache = calc::Cache::GetCache();
+	methodCache = createMethodCache();
+	print(size(methodCache[1]));
+	updateMethodMetrics(1);
 	
 	//default the items are collapsed excepted the root
 	treeStructure = [<item, true> | item <- cache]; 
@@ -74,6 +78,8 @@ private Figure createTree(){
 	return tree(root, children, std(gap(20)));
 }
 
+//	return [item | item <- treeStructure, item.item.parentId == parentId];
+
 private Figure createMainPane(){
 
 	mainPane = vcat([
@@ -86,16 +92,17 @@ private Figure createMainPane(){
 
 private Figure getScatterDiagram() {
 
-	print("updateMethodMetrics() in getScatterDiagram()\n"); 
-    updateMethodMetrics(); 
-    print("createScatterDiagrams() in getScatterDiagram()\n"); 
+    print("entered getScatterDiagram in Hierarchy.rsc\n"); 
     return createScatterDiagrams(scatterDataPoints, "Complexity - McCabe values", "Unit Size");
 
 } 
 
-private void updateMethodMetrics() {
+private void updateMethodMetrics(int id) {
 
-	scatterDataPoints = [DataPoint(arbInt(100), arbInt(300)) | int x <- [1 .. arbInt(1000)]];
+	print("inside updateMethodMetrics\n");
+	print(id);
+	Cache methods = methodCache[id];
+	scatterDataPoints = [DataPoint(method.complexity, method.size) | CacheItem method <- methods];
 	
 }
 
@@ -107,7 +114,7 @@ private FProperty clickProperty(int id){
 	return onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers){		
 		treeStructure[id-1].collapsed = !treeStructure[id-1].collapsed;		
 		//println("click <treeStructure[id-1]>");
-		print("clicked");
+		updateMethodMetrics(id);
 		startDrawing();
 		
 		return true;
@@ -196,4 +203,21 @@ public FProperty popup(str S){
 
 public void main(){
 	drawPage();
+	
+/*	loc file = |file:///c:/temp/cach_smallsql.txt|;
+	calc::Cache::ReadCache(file);
+	cache = calc::Cache::GetCache();
+	methodCache = createMethodCache();
+	print("\nsize\n");
+	print(size(methodCache[3]));
+
+	print("\nsize\n");
+	print(size(methodCache[17]));
+
+	print("\nsize\n");
+	print(size(methodCache[122]));
+
+	print("\nsize\n");
+	print(size(methodCache[1]));
+*/
 }
