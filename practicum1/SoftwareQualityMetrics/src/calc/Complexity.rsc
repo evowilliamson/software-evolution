@@ -27,10 +27,10 @@ import calc::Cache;
 
 str METRIC_NAME = "Complexity";
 
-private str SIMPLE = "simple"; 
-private str MODERATE = "moderate";
-private str HIGH = "high";
-private str VERY_HIGH = "very high";
+public str SIMPLE = "simple"; 
+public str MODERATE = "moderate";
+public str HIGH = "high";
+public str VERY_HIGH = "very high";
 
 //Define the thresholds for calculatibng the Cyclomatic Complexity and the Unit size
 int MAXINT = 9999999;
@@ -40,7 +40,7 @@ real MAXREAL = 9999999.0;
 Threshold for de CC of a unit
 See first table on page 26 of the reader
 **/
-private ThresholdRanksEx thresholdCCUnit = [
+public ThresholdRanksEx thresholdCCUnit = [
 		<11, SIMPLE, 5>,
 		<21, MODERATE, 4>,
 		<50, HIGH, 3>,		
@@ -236,14 +236,14 @@ public str getUnitSizeMessage(num unitSizeRank){
 Calculate the ccyclomatic complexity rank number. 
 Remark: Use the threshold thresholdCCTotal to get the cc text representation 
 **/
-private num calculateCCRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh){
+public num calculateCCRank(num totalProjectLOC, real locSimple, real locModerate, real locHigh, real locVeryHigh){
 	//Calculate the percentages of LOC per risk level
 	locTotal = toReal(totalProjectLOC);
 	real simpleLocPerc = (locSimple/locTotal) * 100;
 	real moderateLocPerc = (locModerate/locTotal) * 100;
 	real highLocPerc = (locHigh/locTotal) * 100;
 	real veryHighLocPerc = (locVeryHigh/locTotal) * 100;
-	calc::Logger::doLog("CC loc Total methods: <locTotal>, loc Simple: (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
+	calc::Logger::doLog("CC loc Total methods: <locTotal>, loc Simple: <locSimple> (<simpleLocPerc> %), loc Moderate: <locModerate> (<moderateLocPerc> %), loc High: <locHigh> (<highLocPerc> %), loc Very High: <locVeryHigh> (<veryHighLocPerc> %)");	
 			
 	//Calculate the rank for each risk level
 	int rankModerate = getRankNum(moderateLocPerc, thresholdCCModerate);
@@ -302,7 +302,7 @@ private str getCCRank(int cc){
   
   See "Benchmark-based Aggregation of Metrics to Rating", T. L. Alves, J.P. Correia and J. Visser Table IIIa.
 **/
-private str getUnitSizeLocRank(int linesOfCode){
+public str getUnitSizeLocRank(int linesOfCode){
 	return getRank(linesOfCode, thresholdLocUnitSize);
 }
 

@@ -194,6 +194,19 @@ public Cache GetCache(){
 }
 
 /**
+Count the amount of item for a specific type. Start counting from a given place in the cache.
+If startId is 0, then the whole cache is visited.
+**/
+public int itemTypeCount(calc::Cache::Cache cache, int itemType, int startId){
+	items = [item |  item <- cache, item.itemType == itemType, item.parentId == startId];
+	return List::size(items); 
+}
+
+public list[CacheItem] GetItemsWithParent(Cache cache, int parentId){
+	return [item | item <- cache, item.parentId == parentId];
+}
+
+/**
 Save the cache to file
 **/
 public void SaveCache(){	
