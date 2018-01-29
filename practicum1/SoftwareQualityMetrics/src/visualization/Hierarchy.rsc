@@ -27,8 +27,8 @@ private MethodCache methodCache = ();
 public void drawPage(){
 	println("Draw page");
 	
-	loc file = |file:///c:/temp/cach_test.txt|;	
-	//loc file = |file:///c:/temp/cach_smallsql.txt|;
+	//loc file = |file:///c:/temp/cach_test.txt|;	
+	loc file = |file:///c:/temp/cach_smallsql.txt|;
 	calc::Cache::ReadCache(file);
 	cache = calc::Cache::GetCache();
 	methodCache = createMethodCache();
