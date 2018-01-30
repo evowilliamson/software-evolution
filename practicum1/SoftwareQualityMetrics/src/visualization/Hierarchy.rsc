@@ -22,17 +22,15 @@ private int BoxWidth = 200; //default box width
 private int MinBoxHeight = 5;
 private int MinBoxWidth = 5;  
 private list[DataPoint] scatterDataPoints = [];
-private MethodCache methodCache = ();
+private ExtendedCacheMap extendedCacheMap = ();
 
 public void drawPage(){
 	println("Draw page");
 	
-	//loc file = |file:///c:/temp/cach_test.txt|;	
-	loc file = |file:///c:/temp/cach_smallsql.txt|;
-	calc::Cache::ReadCache(file);
+	calc::Cache::ReadCaches();
 	cache = calc::Cache::GetCache();
-	methodCache = createMethodCache();
-	print(size(methodCache[1]));
+	extendedCacheMap = calc::Cache::GetExtendedCacheMap();
+
 	updateMethodMetrics(1);
 	
 	//default the items are collapsed excepted the root
@@ -96,17 +94,14 @@ private Figure createMainPane(){
 
 private Figure getScatterDiagram() {
 
-    print("entered getScatterDiagram in Hierarchy.rsc\n"); 
     return createScatterDiagrams(scatterDataPoints, "Complexity - McCabe values", "Unit Size");
 
 } 
 
 private void updateMethodMetrics(int id) {
 
-	print("inside updateMethodMetrics\n");
-	print(id);
-	Cache methods = methodCache[id];
-	scatterDataPoints = [DataPoint(method.complexity, method.size) | CacheItem method <- methods];
+	ExtendedCache methods = extendedCacheMap[id];
+	scatterDataPoints = [DataPoint(method.cacheItem.name, method.cacheItem.complexity, method.cacheItem.size) | ExtendedCacheItem method <- methods];
 	
 }
 
@@ -164,21 +159,4 @@ public int itemTypeCount(int itemType, int startId){
 
 public void main(){
 	drawPage();
-	
-/*	loc file = |file:///c:/temp/cach_smallsql.txt|;
-	calc::Cache::ReadCache(file);
-	cache = calc::Cache::GetCache();
-	methodCache = createMethodCache();
-	print("\nsize\n");
-	print(size(methodCache[3]));
-
-	print("\nsize\n");
-	print(size(methodCache[17]));
-
-	print("\nsize\n");
-	print(size(methodCache[122]));
-
-	print("\nsize\n");
-	print(size(methodCache[1]));
-*/
 }

@@ -27,7 +27,8 @@ import calc::Cache;
 **/
 public void main() {
 
-	reportMetrics(|project://smallsql/|);
+	reportMetrics(|project://TestOut/|);
+	//reportMetrics(|project://smallsql/|);
 	//reportMetrics(|project://TestSoftwareQualityMetrics/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);
@@ -59,6 +60,8 @@ private void reportMetrics(loc project) {
 
 	reportAdditionalDuplicationInformation(duplicationMetricAggregate);
 	reportAdditionalComplexityInformation(complexityAggregate);
+	// Generate extended cache
+	calc::Cache::createMethodCache();
 	calc::Cache::SaveCache();
 }
 

@@ -19,6 +19,10 @@ alias CacheItem = tuple[int id, int itemType, str name, int parentId, int size, 
 alias Cache = list[CacheItem];
 alias MethodCache = map[int, Cache]; 
 
+alias ExtendedCacheItem = tuple[CacheItem cacheItem, str fullPackage];
+alias ExtendedCache = list[ExtendedCacheItem];
+alias ExtendedCacheMap = map[int, ExtendedCache];
+
 //Cache item types
 public int APPLICATION = 0;
 public int PACKAGE = 1;
@@ -28,18 +32,33 @@ public int METHOD = 4;
 
 private int ROOT_ITEM = 0;
 
+private	loc MAIN_CACHE_LOCATION = |file:///c:/temp/cach.txt|;
+private	loc EXTENDED_CACHE_LOCATION = |file:///c:/temp/cach_extended.txt|;
+
 private Cache cache = [];
 private MethodCache methodCache = ();
+private ExtendedCacheMap extendedCacheMap = ();
 
 /*
 	Createst the method cache. Each entry in the cache will contain the methods of its own plus the methods of its children
 	returns± the cache that contains per entry, the accumulated methods
 */
-public MethodCache createMethodCache() {
+public MethodCache createMethodCacheOld() {
 
-	getMethodsInTree(cache[ROOT_ITEM]);
+	getMethodsInTreeOld(cache[ROOT_ITEM]);
 	return methodCache;
 	
+}
+
+public ExtendedCacheMap createMethodCache() {
+
+	getMethodsInTree(cache[ROOT_ITEM]);
+	return extendedCacheMap;
+	
+}
+
+private void printlnObject(value theValue, str tag_) {
+	print(tag_); print(theValue); print("\n");
 }
 
 /*
@@ -51,16 +70,16 @@ private void getMethodsInTree(CacheItem cacheItem) {
 	
 	Cache methods = getMethods(cacheItem.id);
 	childs = [item | item <- cache, item.parentId == cacheItem.id];
-	methodCache = methodCache + (cacheItem.id: []);
+	extendedCacheMap = extendedCacheMap + (cacheItem.id: []);
 	for (child <- childs) {
 		if (child.itemType == METHOD) {
 			// Add itself to the parent
-			methodCache = methodCache + (child.parentId: methodCache[child.parentId] + child);
+			extendedCacheMap = extendedCacheMap + (child.parentId: extendedCacheMap[child.parentId] + <child, "bla">);
 		}
 		else {
 			// First traverse the tree
 			getMethodsInTree(child);
-			methodCache = methodCache + (child.parentId: methodCache[child.parentId] + methodCache[child.id]);
+			extendedCacheMap = extendedCacheMap + (child.parentId: extendedCacheMap[child.parentId] + extendedCacheMap[child.id]);
 		}
 	}
 	
@@ -179,18 +198,20 @@ public void PrintCache(){
 	println("cache: <cache>");
 }
 
-public void ReadCach(){
-	loc tmp = |file:///c:/temp/cach.txt|;	
-	ReadCache(tmp);
-}
+public void ReadCaches(){
 
-public void ReadCache(loc file){
-	calc::Logger::doLog("Read cache from file: <file>");
-	cache = readTextValueFile(#Cache, file);
+	calc::Logger::doLog("Read main cache from file: <MAIN_CACHE_LOCATION>");
+	cache = readTextValueFile(#Cache, MAIN_CACHE_LOCATION);
+	calc::Logger::doLog("Read main cache from file: <EXTENDED_CACHE_LOCATION>");
+	extendedCacheMap = readTextValueFile(#ExtendedCacheMap, EXTENDED_CACHE_LOCATION);
 }
 
 public Cache GetCache(){
 	return cache; 
+}
+
+public ExtendedCacheMap GetExtendedCacheMap(){
+	return extendedCacheMap; 
 }
 
 /**
@@ -207,13 +228,17 @@ public list[CacheItem] GetItemsWithParent(Cache cache, int parentId){
 }
 
 /**
-Save the cache to file
+Save both caches to a file
 **/
 public void SaveCache(){	
-	loc tmp = |file:///c:/temp/cach.txt|;
-	calc::Logger::doLog("Write cache to file: <tmp>");
 	
-	writeTextValueFile(tmp, cache);
+	// Write the main cachce
+	calc::Logger::doLog("Write main cache to file: <MAIN_CACHE_LOCATION>");
+	writeTextValueFile(MAIN_CACHE_LOCATION, cache);
+	// Write the extended cachce
+	calc::Logger::doLog("Write extended cache to file: <EXTENDED_CACHE_LOCATION>");
+	writeTextValueFile(EXTENDED_CACHE_LOCATION, extendedCacheMap);
+
 }
 
 public void ClearCache(){
@@ -235,22 +260,18 @@ private CacheItem GetCachItem(int id){
 }
 
 public void main(){
-//	drawPage();
 	
-	loc file = |file:///c:/temp/cach_smallsql.txt|;
-	calc::Cache::ReadCache(file);
+	calc::Cache::ReadCaches();
 	cache = calc::Cache::GetCache();
-	methodCache = createMethodCache();
-	print("\nsize\n");
-	print(size(methodCache[3]));
-
-	print("\nsize\n");
-	print(size(methodCache[17]));
-
-	print("\nsize\n");
-	print(size(methodCache[122]));
-
-	print("\nsize\n");
-	print(size(methodCache[1]));
+	for (cacheItem <- cache) {
+		print(cacheItem); print("\n");
+	}
+	print("\n");
+	extendedCacheMap = calc::Cache::GetExtendedCacheMap();
+	for (id <- extendedCacheMap) {
+		print(id); print(": "); printlnObject(extendedCacheMap[id], "element");
+	}
+	
+	print(size(extendedCacheMap[1]));
 
 }
