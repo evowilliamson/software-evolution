@@ -27,8 +27,8 @@ import calc::Cache;
 **/
 public void main() {
 
-	reportMetrics(|project://TestOut/|);
-	//reportMetrics(|project://smallsql/|);
+	//reportMetrics(|project://TestOut/|);
+	reportMetrics(|project://smallsql/|);
 	//reportMetrics(|project://TestSoftwareQualityMetrics/|);
 	//reportMetrics(|project://core/|);
 	//reportMetrics(|project://Jabberpoint-le3/|);

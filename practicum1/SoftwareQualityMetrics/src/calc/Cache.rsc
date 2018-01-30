@@ -31,6 +31,7 @@ public int CLASS = 3;
 public int METHOD = 4;
 
 private int ROOT_ITEM = 0;
+private int ID_ROOT_ELEMENT = 1;
 
 private	loc MAIN_CACHE_LOCATION = |file:///c:/temp/cach.txt|;
 private	loc EXTENDED_CACHE_LOCATION = |file:///c:/temp/cach_extended.txt|;
@@ -43,13 +44,6 @@ private ExtendedCacheMap extendedCacheMap = ();
 	Createst the method cache. Each entry in the cache will contain the methods of its own plus the methods of its children
 	returns± the cache that contains per entry, the accumulated methods
 */
-public MethodCache createMethodCacheOld() {
-
-	getMethodsInTreeOld(cache[ROOT_ITEM]);
-	return methodCache;
-	
-}
-
 public ExtendedCacheMap createMethodCache() {
 
 	getMethodsInTree(cache[ROOT_ITEM]);
@@ -74,7 +68,9 @@ private void getMethodsInTree(CacheItem cacheItem) {
 	for (child <- childs) {
 		if (child.itemType == METHOD) {
 			// Add itself to the parent
-			extendedCacheMap = extendedCacheMap + (child.parentId: extendedCacheMap[child.parentId] + <child, "bla">);
+			printlnObject(getFullyQualifiedName(child.id), "Full");
+			extendedCacheMap = extendedCacheMap + 
+				(child.parentId: extendedCacheMap[child.parentId] + <child, replaceFirst(getFullyQualifiedName(child.parentId),".", "")>);
 		}
 		else {
 			// First traverse the tree
@@ -83,6 +79,28 @@ private void getMethodsInTree(CacheItem cacheItem) {
 		}
 	}
 	
+}
+
+private str getFullyQualifiedName(int id) {
+
+	CacheItem cacheItem = getCacheItem(id);
+	if (cacheItem.id != ID_ROOT_ELEMENT) {
+		return getFullyQualifiedName(cacheItem.parentId) + "." + replaceAll(cacheItem.name, ".java", "");
+	}
+	else {
+		return "";
+	}
+
+}
+
+private CacheItem getCacheItem(int id) {
+
+	for (cacheItem <- cache) {
+		if (cacheItem.id == id) {
+			return cacheItem;
+		}
+	}
+
 }
 
 /*
@@ -271,7 +289,8 @@ public void main(){
 	for (id <- extendedCacheMap) {
 		print(id); print(": "); printlnObject(extendedCacheMap[id], "element");
 	}
-	
+
+	print(getFullyQualifiedName(19));	
 	print(size(extendedCacheMap[1]));
 
 }

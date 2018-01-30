@@ -27,7 +27,8 @@ private str yAxisTitle;
 public void main() {
 
 //	render(createScatterDiagrams([DataPoint(arbInt(10), arbInt(10), "bla") | int x <- [1 .. 10]], "Complexity - McCabe values", "Unit Size"));
-	render(createScatterDiagrams([DataPoint("bla", 1,1), DataPoint("bla", 10,1), DataPoint("bla", 1,10), DataPoint("bla", 10, 10)], "Complexity - McCabe values", "Unit Size"));
+	render(createScatterDiagrams([DataPoint("bla", 1, 1, "extra"), DataPoint("bla", 10, 1, "extra"), DataPoint("bla", 1, 10, "extra"), 
+									DataPoint("bla", 10, 10, "extra")], "Complexity - McCabe values", "Unit Size"));
 	
 }
 
@@ -68,7 +69,7 @@ private void updateScatterDataForZoom() {
 	real maxYValueClickedQuadrant = toReal(parentScatterData.maxYValue - ((selectedQuandrant.y - 1) * (toReal(parentScatterData.maxYValue) / toReal(DIVISIONS))));
 
 	list[DataPoint] zoomedMetrics =  
-		[ DataPoint(t.name, t.x, t.y)
+		[ DataPoint(t.name, t.x, t.y, t.extraInfo)
 			| DataPoint t <- parentScatterData.metrics, 
 					t.x >= minXValueClickedQuadrant && t.x <= maxXValueClickedQuadrant && 
 					t.y >= minYValueClickedQuadrant && t.y <= maxYValueClickedQuadrant 
@@ -159,7 +160,7 @@ public Figure createGrid(ScatterData scatterData, bool isZoom) {
 
 private str getMethodInfo(DataPoint dataPoint) {
 
-	return "<dataPoint.name>()\nComplexity: <dataPoint.x>\nSize: <dataPoint.y>";  
+	return "<dataPoint.name>()\nPackage: <dataPoint.extraInfo>\nComplexity: <dataPoint.x>\nSize: <dataPoint.y>";  
 	
 }
 

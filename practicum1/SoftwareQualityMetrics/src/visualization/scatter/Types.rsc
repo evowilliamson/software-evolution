@@ -11,4 +11,4 @@ data ScatterData = ScatterData(
 	);
 
 data Quadrant = Quadrant(int x, int y);
-data DataPoint = DataPoint(str name, int x, int y);
+data DataPoint = DataPoint(str name, int x, int y, str extraInfo);

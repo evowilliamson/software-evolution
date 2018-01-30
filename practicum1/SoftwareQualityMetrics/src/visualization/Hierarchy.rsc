@@ -101,7 +101,7 @@ private Figure getScatterDiagram() {
 private void updateMethodMetrics(int id) {
 
 	ExtendedCache methods = extendedCacheMap[id];
-	scatterDataPoints = [DataPoint(method.cacheItem.name, method.cacheItem.complexity, method.cacheItem.size) | ExtendedCacheItem method <- methods];
+	scatterDataPoints = [DataPoint(method.cacheItem.name, method.cacheItem.complexity, method.cacheItem.size, method.fullPackage) | ExtendedCacheItem method <- methods];
 	
 }
 
