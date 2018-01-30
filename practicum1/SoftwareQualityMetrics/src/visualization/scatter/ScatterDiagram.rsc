@@ -75,7 +75,7 @@ private void updateScatterDataForZoom() {
 					t.y >= minYValueClickedQuadrant && t.y <= maxYValueClickedQuadrant 
 		];
 	
-	zoomedScatterData = createScatterData(zoomedMetrics);
+	zoomedScatterData = createScatterDataForZoom(zoomedMetrics, minXValueClickedQuadrant, maxXValueClickedQuadrant, minYValueClickedQuadrant, maxYValueClickedQuadrant);
 	
 }
 
@@ -83,12 +83,6 @@ private str getMethodInformation() {
 
 	return "Node name: Node\nParent: Parent\nComplexity: 200\nUnit size: 100";
 	 
-}
-
-private Figure getNodeInformation() {
-
-	return box(text(getMethodInformation),[grow(1.1),resizable(false)]);
-
 }
 
 private ScatterData createScatterData(list[DataPoint] metrics) {
@@ -110,6 +104,30 @@ private ScatterData createScatterData(list[DataPoint] metrics) {
 
 	//a = [DataPoint(arbInt(100), arbInt(300)) | DataPoint x <- metrics];
 	//s = ScatterData(a, 100, 200, 300, 100, "dfdf", "dsfdfd");
+	s = ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle);
+
+	return s; 
+
+}
+
+private ScatterData createScatterDataForZoom(list[DataPoint] metrics,
+				real minXValueClickedQuadrant,
+				real maxXValueClickedQuadrant,
+				real minYValueClickedQuadrant,
+				real maxYValueClickedQuadrant) {
+
+	int minXValue = 0;
+	int maxXValue = 0;
+	int maxYValue = 0;
+	int minYValue = 0;
+	
+	if (size(metrics) != 0) {
+		minXValue = round(minXValueClickedQuadrant);
+		maxXValue = round(maxXValueClickedQuadrant);
+		maxYValue = round(maxYValueClickedQuadrant);
+		minYValue = round(minYValueClickedQuadrant);
+	}
+
 	s = ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle);
 
 	return s; 
