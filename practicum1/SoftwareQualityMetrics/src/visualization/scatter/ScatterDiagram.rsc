@@ -27,8 +27,11 @@ private str yAxisTitle;
 public void main() {
 
 //	render(createScatterDiagrams([DataPoint(arbInt(10), arbInt(10), "bla") | int x <- [1 .. 10]], "Complexity - McCabe values", "Unit Size"));
-	render(createScatterDiagrams([DataPoint("bla", 1, 1, "extra"), DataPoint("bla", 10, 1, "extra"), DataPoint("bla", 1, 10, "extra"), 
-									DataPoint("bla", 10, 10, "extra")], "Complexity - McCabe values", "Unit Size"));
+	//render(createScatterDiagrams([DataPoint("bla", 1, 1, "extra"), DataPoint("bla", 10, 1, "extra"), DataPoint("bla", 1, 10, "extra"), 
+		//							DataPoint("bla", 10, 10, "extra")], "Complexity - McCabe values", "Unit Size"));
+	
+	
+	print(getEuclidianDistance(10, 20, 100, 20));
 	
 }
 
@@ -160,6 +163,9 @@ public Figure createScatterDiagram(bool isZoom) {
 
 public Figure createGrid(ScatterData scatterData, bool isZoom) {
 
+	tuple[real x, real y] average = getAverageXY(scatterData.metrics);
+	real diagonalDistance = getDiagonalDistance(scatterData.metrics);
+	
 	dataPoints = [
 				ellipse(
 					[
@@ -167,7 +173,7 @@ public Figure createGrid(ScatterData scatterData, bool isZoom) {
 						valign(1 - calculateAlignInGrid(dataPoint.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), 
 						size(getPointSize(isZoom)), 
 						fillColor("gray"),
-						popup(getMethodInfo(dataPoint))
+						conditionalPopup(dataPoint, diagonalDistance, average)
 					]) | dataPoint <- scatterData.metrics
 				];
 	emptyGrid = grid([createGridRows(isZoom)]);
@@ -176,12 +182,64 @@ public Figure createGrid(ScatterData scatterData, bool isZoom) {
 	
 } 
 
+private real getDiagonalDistance(list[DataPoints] dataPoints) {
+
+	list[int] xValues = [metric.x | DataPoint metric <- metrics]; 
+	maxXValue = max(xValues);
+	minXValue = min(xValues);
+	list[int] yValues = [metric.y | DataPoint metric <- metrics];
+	maxYValue = max(yValues);
+	minYValue = min(yValues);
+	return getEuclidianDistance(minXValue, minYValue, maxXValue, maxYValue);
+
+} 
+
+private real getEuclidianDistance(int px, int py, int qx, int qy) {
+
+	return sqrt(pow(px - qx, 2) + pow(py - qy, 2));
+
+}
+
+private FProperty conditionalPopup(DataPoint datapoint, real diagonalDistance, tuple[real x, real y] average) {
+
+	if (getEuclidianDistance(average.x, dataPoint.x, average.y, dataPoint.y) > diagonalDistance*0.10) {
+		return popup(getMethodInfo(dataPoint));
+	}
+	else {
+		return fillColor("gray");
+	}
+
+}
+
 private str getMethodInfo(DataPoint dataPoint) {
 
 	return "<dataPoint.name>()\nPackage: <dataPoint.extraInfo>\nComplexity: <dataPoint.x>\nSize: <dataPoint.y>";  
 	
 }
 
+private tuple[real x, real y] getAverageXY(list[DataPoint] dataPoints) {
+
+	real maxX = 0.0;
+	real maxY = 0.0;
+
+	if (size(dataPoints) == 0) {
+		return <maxX, maxY>;
+		}
+
+	// TODO use accumulator!!!
+	for (dataPoint <- dataPoints) {
+		maxX += toReal(dataPoint.x);
+		maxY += toReal(dataPoint.y);
+	}
+	
+	return <maxX/size(dataPoints), maxY/size(dataPoints)>;
+
+}
+
+private bool showPopup(DataPoint dataPoint, tuple[real x, real y] average) {
+	return false;
+}
+ 
 private int getPointSize(bool isZoom) {
 	if (isZoom) 
 		return SIZE_POINT_ZOOM;
