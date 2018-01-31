@@ -27,7 +27,7 @@ public void main(){
 private void drawPage(){
 	//loc file = |file:///c:/temp/cach_test.txt|;	
 	loc file = |file:///c:/temp/cach_smallsql.txt|;
-	calc::Cache::ReadCache(file);
+	calc::Cache::ReadCaches();
 	cache = calc::Cache::GetCache();
 	
 	startDrawPage();

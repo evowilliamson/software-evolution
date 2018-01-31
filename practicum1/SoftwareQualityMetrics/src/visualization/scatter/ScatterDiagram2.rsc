@@ -23,14 +23,15 @@ private ScatterData zoomedScatterData;
 private Quadrant selectedQuandrant;
 private str xAxisTitle;
 private str yAxisTitle;
-private Figure zoomedScatter;
-private bool clickedScatter = true;
 
 public void main() {
 
+	//render(createScatterDiagrams([DataPoint(arbInt(10), arbInt(10), "bla") | int x <- [1 .. 10]], "Complexity - McCabe values", "Unit Size"));
 	render(createScatterDiagrams([DataPoint("bla", 1, 1, "extra"), DataPoint("bla", 10, 1, "extra"), DataPoint("bla", 1, 10, "extra"), 
 									DataPoint("bla", 10, 10, "extra")], "Complexity - McCabe values", "Unit Size"));
 	
+	
+//	print(getEuclidianDistance(10, 20, 100, 20));
 	
 }
 
@@ -53,23 +54,11 @@ private Figure getZoomedScatter() {
 
     return computeFigure (
     	bool () { 
-    		if (clickedScatter) {
-    			// only update if clicked, don't react on other events, like mouse movement
-    			updateScatterDataForZoom();
-    			return true;
-    		}
-    		else {
-    			return false;
-    		}
+    		updateScatterDataForZoom(); 
+    		return true;
     	}, 
     	Figure() {
-    		if (clickedScatter) {
-    			// only update if clicked, don't react on other events, like mouse movement
-    			zoomedScatter = createScatterDiagram(true);
-    			// reset flag
-    			clickedScatter = false;
-    		} 
-	    	return zoomedScatter;
+    		return createScatterDiagram(true);
     	}
     );
 
@@ -170,6 +159,9 @@ public Figure createScatterDiagram(bool isZoom) {
 
 public Figure createGrid(ScatterData scatterData, bool isZoom) {
 
+	tuple[real x, real y] average = getAverageXY(scatterData.metrics);
+	real diagonalDistance = getDiagonalDistance(scatterData.metrics);
+	
 	dataPoints = [
 				ellipse(
 					[
@@ -177,19 +169,71 @@ public Figure createGrid(ScatterData scatterData, bool isZoom) {
 						valign(1 - calculateAlignInGrid(dataPoint.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), 
 						size(getPointSize(isZoom)), 
 						fillColor("gray"),
+						//conditionalPopup(dataPoint, diagonalDistance, average, size(scatterData.metrics))
 						popup(getMethodInfo(dataPoint))
 					]) | dataPoint <- scatterData.metrics
 				];
+
+	print("here");
+
 	emptyGrid = grid([createGridRows(isZoom)]);
 	filledGrid = overlay(emptyGrid + dataPoints);
 	return filledGrid;
 	
 } 
 
+private FProperty conditionalPopup(DataPoint dataPoint, real diagonalDistance, tuple[real x, real y] average, int dataPointsSize) {
+
+	if (dataPointsSize < 100 || getEuclidianDistance(average.x, dataPoint.x, average.y, dataPoint.y) > diagonalDistance*0.10) {
+		return popup(getMethodInfo(dataPoint));
+	}
+	else {
+		return fillColor("gray");
+	}
+
+}
+
+private real getDiagonalDistance(list[DataPoint] dataPoints) {
+
+	list[int] xValues = [metric.x | DataPoint metric <- dataPoints]; 
+	maxXValue = max(xValues);
+	minXValue = min(xValues);
+	list[int] yValues = [metric.y | DataPoint metric <- dataPoints];
+	maxYValue = max(yValues);
+	minYValue = min(yValues);
+	return getEuclidianDistance(minXValue, minYValue, maxXValue, maxYValue);
+
+} 
+
+private real getEuclidianDistance(num px, num py, num qx, num qy) {
+
+	return sqrt(pow(px - qx, 2) + pow(py - qy, 2));
+
+}
+
 private str getMethodInfo(DataPoint dataPoint) {
 
 	return "<dataPoint.name>()\nPackage: <dataPoint.extraInfo>\nComplexity: <dataPoint.x>\nSize: <dataPoint.y>";  
 	
+}
+
+private tuple[real x, real y] getAverageXY(list[DataPoint] dataPoints) {
+
+	real maxX = 0.0;
+	real maxY = 0.0;
+
+	if (size(dataPoints) == 0) {
+		return <maxX, maxY>;
+		}
+
+	// TODO use accumulator!!!
+	for (dataPoint <- dataPoints) {
+		maxX += toReal(dataPoint.x);
+		maxY += toReal(dataPoint.y);
+	}
+	
+	return <maxX/size(dataPoints), maxY/size(dataPoints)>;
+
 }
 
 private bool showPopup(DataPoint dataPoint, tuple[real x, real y] average) {
@@ -224,7 +268,6 @@ private FProperty clickScatterQuadrant(int x, int y) {
 
 	return onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers){
 		selectedQuandrant = selectQuadrant(x, y);
-		clickedScatter = true;
 		return true;
 	});
 
