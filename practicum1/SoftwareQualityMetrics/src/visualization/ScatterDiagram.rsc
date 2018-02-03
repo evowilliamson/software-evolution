@@ -275,6 +275,10 @@ private list[Figure] createDashedGridBoxes(bool isZoom) {
 **/
 private str getMethodInfo(DataPoint dataPoint) {
 
+	for (d <- [] + dataPoint) {
+		print(" \\hline smallsql&<d.extraInfo>.<d.name>()&<d.x>&<d.y>\\\\\n");
+	}
+
 	return "<dataPoint.name>()\nPackage: <dataPoint.extraInfo>\nComplexity: <dataPoint.x>\nSize: <dataPoint.y>";  
 	
 }
