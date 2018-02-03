@@ -2,15 +2,13 @@ module visualization::Types
 
 data ScatterData = ScatterData(
 	list[DataPoint] metrics, 
-	real maxXValue, 
-	real minXValue, 
-	real maxYValue, 
-	real minYValue,
-	real maxZValue, 
-	real minZValue,
+	int maxXValue, 
+	int minXValue, 
+	int maxYValue, 
+	int minYValue,
 	str xAxisTitle,
 	str yAxisTitle
 	);
 
 data Quadrant = Quadrant(int x, int y);
-data DataPoint = DataPoint(str name, real x, real y, real z, str extraInfo);
+data DataPoint = DataPoint(str name, int x, int y, str extraInfo);

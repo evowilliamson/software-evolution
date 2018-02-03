@@ -45,9 +45,8 @@ private bool clickedScatter = true;
 **/
 public void main() {
 
-	render(createScatterDiagrams([DataPoint("bla", 1.0, 1.0, 1.0, "extra"), DataPoint("bla", 10.0, 1.0, 1.0, "extra"), DataPoint("bla", 1.0, 10.0, 1.0, "extra"), 
-									DataPoint("bla", 10.0, 10.0, 1.0, "extra")], "Complexity - McCabe values", "Unit Size"));
-	
+	render(createScatterDiagrams([DataPoint("bla", 1, 1, "extra"), DataPoint("bla", 10, 1, "extra"), DataPoint("bla", 1, 10, "extra"), 
+									DataPoint("bla", 10, 10, "extra")], "Complexity - McCabe values", "Unit Size"));
 	
 }
 
@@ -120,18 +119,13 @@ private void updateScatterDataForZoom() {
 
 	// Now only consider the datapoints that fall into the clicked quadrant
 	list[DataPoint] zoomedMetrics =  
-		[ DataPoint(t.name, t.x, t.y, 0.0, t.extraInfo)
+		[ DataPoint(t.name, t.x, t.y, t.extraInfo)
 			| DataPoint t <- parentScatterData.metrics, 
 					t.x >= minXValueClickedQuadrant && t.x <= maxXValueClickedQuadrant && 
 					t.y >= minYValueClickedQuadrant && t.y <= maxYValueClickedQuadrant 
 		];
 	
-	// Determine the min and max z values. Input for that are the zoomed points!
-	real minZ = (0.0 | max(it, e.z) | DataPoint e <- zoomedMetrics);
-	real maxZ = (0.0 | min(it, e.z) | DataPoint e <- zoomedMetrics);
-	
-	zoomedScatterData = createScatterDataForZoom(zoomedMetrics, minXValueClickedQuadrant, maxXValueClickedQuadrant, minYValueClickedQuadrant, 
-							minZ, maxZ, maxYValueClickedQuadrant);
+	zoomedScatterData = createScatterDataForZoom(zoomedMetrics, minXValueClickedQuadrant, maxXValueClickedQuadrant, minYValueClickedQuadrant, maxYValueClickedQuadrant);
 	
 }
 
@@ -142,27 +136,22 @@ private void updateScatterDataForZoom() {
 **/
 private ScatterData createScatterData(list[DataPoint] metrics) {
 
-	real minXValue = 0.0;
-	real maxXValue = 0.0;
-	real maxYValue = 0.0;
-	real minYValue = 0.0;
-	real maxZValue = 0.0;
-	real minZValue = 0.0;
+	int minXValue = 0;
+	int maxXValue = 0;
+	int maxYValue = 0;
+	int minYValue = 0;
 	
 	if (size(metrics) != 0) {
-		list[real] xValues = [metric.x | DataPoint metric <- metrics]; 
+		list[int] xValues = [metric.x | DataPoint metric <- metrics]; 
 		minXValue = min(xValues);
 		maxXValue = max(xValues);
-		list[real] yValues = [metric.y | DataPoint metric <- metrics];
+		list[int] yValues = [metric.y | DataPoint metric <- metrics];
 		maxYValue = max(yValues);
 		minYValue = min(yValues);
-		list[real] zValues = [metric.z | DataPoint metric <- metrics];
-		maxZValue = max(zValues);
-		minZValue = min(zValues);
 	}
 	
 
-	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, maxZValue, minZValue, xAxisTitle, yAxisTitle); 
+	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle); 
 
 }
 
@@ -173,27 +162,21 @@ private ScatterData createScatterDataForZoom(list[DataPoint] metrics,
 				real minXValueClickedQuadrant,
 				real maxXValueClickedQuadrant,
 				real minYValueClickedQuadrant,
-				real maxYValueClickedQuadrant,
-				real minYValueClickedQuadrant,
 				real maxYValueClickedQuadrant) {
 
-	real minXValue = 0.0;
-	real maxXValue = 0.0;
-	real maxYValue = 0.0;
-	real minYValue = 0.0;
-	real maxZValue = 0.0;
-	real minZValue = 0.0;
+	int minXValue = 0;
+	int maxXValue = 0;
+	int maxYValue = 0;
+	int minYValue = 0;
 	
 	if (size(metrics) != 0) {
-		minXValue = minXValueClickedQuadrant;
-		maxXValue = maxXValueClickedQuadrant;
-		maxYValue = maxYValueClickedQuadrant;
-		minYValue = minYValueClickedQuadrant;
-		maxZValue = maxZValueClickedQuadrant;
-		minZValue = minZValueClickedQuadrant;
+		minXValue = round(minXValueClickedQuadrant);
+		maxXValue = round(maxXValueClickedQuadrant);
+		maxYValue = round(maxYValueClickedQuadrant);
+		minYValue = round(minYValueClickedQuadrant);
 	}
 
-	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, maxZValue, minZValue, xAxisTitle, yAxisTitle); 
+	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle); 
 
 }
 
@@ -245,7 +228,7 @@ public Figure createGrid(ScatterData scatterData, bool isZoom) {
 						halign(calculateAlignInGrid(dataPoint.x, scatterData.minXValue, scatterData.maxXValue)), 
 						valign(1 - calculateAlignInGrid(dataPoint.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), 
 						size(getPointSize(isZoom)), 
-						createDataPointColor("green", (dataPoint.z - scatterData.minZValue)/(scatterData.maxZValue - scatterData.minZValue)),
+						fillColor("gray"),
 						popup(getMethodInfo(dataPoint))
 					]) | dataPoint <- scatterData.metrics
 				];
@@ -258,14 +241,6 @@ public Figure createGrid(ScatterData scatterData, bool isZoom) {
 	return filledGrid;
 	
 } 
-
-private FProperty createDataPointColor(str dataPointColor, real value_) {
-
-	from = color("white");
-	to = color(dataPointColor);
-	return fillColor(interpolateColor(from, to, value_));
-
-}
 
 /**
 	This method creates the boxes inside the scatter grid
@@ -299,10 +274,6 @@ private list[Figure] createDashedGridBoxes(bool isZoom) {
 	returns: 		the construced string with all the info
 **/
 private str getMethodInfo(DataPoint dataPoint) {
-
-	for (d <- [] + dataPoint) {
-		print(" \\hline smallsql&<d.extraInfo>.<d.name>()&<d.x>&<d.y>\\\\\n");
-	}
 
 	return "<dataPoint.name>()\nPackage: <dataPoint.extraInfo>\nComplexity: <dataPoint.x>\nSize: <dataPoint.y>";  
 	
@@ -409,7 +380,7 @@ private Quadrant selectQuadrant(int x, int y) {
 	@max		max boundary of the grid
 	
 **/
-private real calculateAlignInGrid(real x, real min, real max) {
+private real calculateAlignInGrid(int x, int min, int max) {
 
 	if (max == min) 
 		return 1.0;
