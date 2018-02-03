@@ -1,4 +1,4 @@
-module visualization::scatter::Types
+module visualization::Types
 
 data ScatterData = ScatterData(
 	list[DataPoint] metrics, 

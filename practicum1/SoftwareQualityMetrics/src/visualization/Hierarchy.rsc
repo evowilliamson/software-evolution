@@ -9,8 +9,8 @@ import util::Math;
 import Map;
 import calc::Cache;
 import visualization::Helper;
-import visualization::scatter::ScatterDiagram;
-import visualization::scatter::Types;
+import visualization::ScatterDiagram;
+import visualization::Types;
 
 alias TreeItem = tuple[calc::Cache::CacheItem item, bool collapsed];
 alias TreeStructure = list[TreeItem];

@@ -1,4 +1,4 @@
-module visualization::scatter::ScatterDiagram
+module visualization::ScatterDiagram
 
 /*
 
@@ -20,7 +20,7 @@ import IO;
 import List;
 import String;
 import vis::KeySym;
-import visualization::scatter::Types;
+import visualization::Types;
 import visualization::Helper;
 
 // Constants definitions
