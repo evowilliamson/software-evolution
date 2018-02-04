@@ -202,7 +202,7 @@ public ComplexityAggregate getCyclomaticComplexityAndUnitSize(loc project, str f
 		//Determine unit size of the method
 		str unitSizeRank = getUnitSizeLocRank(locMethod);
 		
-		//Add loc of method to relative unti size category
+		//Add loc of method to relative unit size category
 		switch(unitSizeRank){
 			case MODERATE: locUnitSizeModerate += locMethod;
 			case HIGH: locUnitSizeHigh += locMethod;

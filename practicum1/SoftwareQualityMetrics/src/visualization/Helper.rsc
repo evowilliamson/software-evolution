@@ -25,13 +25,21 @@ public str getColor(int itemType){
 }
 
 /**
+Create a popup
 source: https://stackoverflow.com/questions/20299595/hover-tooltiptext-in-rascal-figure
+@S: the text to be shown on the popup
+@return: the mouseover property
 **/
 public FProperty popup(str S){
  return mouseOver(box(text(S), fillColor("lightyellow"),
  grow(1.2),resizable(false)));
 }
 
+/**
+Get the item info about an item in the cache
+@item: info about this item will be created
+@cache: the cache needed for extra info
+**/
 public str getItemInfo(calc::Cache::CacheItem item, calc::Cache::Cache cache){
 	str info = "";
 
@@ -42,9 +50,8 @@ public str getItemInfo(calc::Cache::CacheItem item, calc::Cache::Cache cache){
 		case 3: info = "Class: <item.name>";
 		case 4: info = "Method: <item.name>";		
 	}
-	
-	info +=  "\r\nSize: <item.size>";
-	info +=  "\r\nComplexity: <item.complexity>";
+		
+	info +=  "\r\nSize: <item.size>";	
 	
 	//Extra application info
 	if (item.itemType == 0){
@@ -60,13 +67,41 @@ public str getItemInfo(calc::Cache::CacheItem item, calc::Cache::Cache cache){
 	//Extra File info
 	if (item.itemType == 2){
 		//Duplication only for file
-		info +=  "\r\nDuplication: <item.duplication>";
+		info +=  "\r\nDuplication: <item.duplication> %";
 	}
 	
 	//Extra class info
 	if (item.itemType == 3){
 		info += "\r\nAmount of methods: <calc::Cache::itemTypeCount(cache, 4, item.id)>";
 	}
-		
+	
+	//Extra method info
+	if (item.itemType == 4){		
+		info +=  "\r\nComplexity: <item.complexity>";		
+	}
+	
+	info += "\r\nPath: <getPath(item, cache)>";
+			
 	return info;
+}
+
+/**
+Get the path of an item.
+e.g. if an item is a method then the path will be package/package/class/method
+@item: create the path of this item
+@cache: the cache with the items
+@return the path of the item
+**/
+public str getPath(calc::Cache::CacheItem item, calc::Cache::Cache cache){
+	return getPath(cache[item.parentId-1], cache, item.name);
+}
+
+private str getPath(calc::Cache::CacheItem item, calc::Cache::Cache cache, str path){
+	if (item.parentId == 0){
+		//application item
+		return path; 
+	}
+	else{
+		return getPath(cache[item.parentId-1], cache, "<item.name>\\<path>");
+	}
 }
