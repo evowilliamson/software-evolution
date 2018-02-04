@@ -94,7 +94,7 @@ private Figure createMainPane(){
 
 private Figure getScatterDiagram() {
 
-    return createScatterDiagrams(scatterDataPoints, "Complexity - McCabe values", "Unit Size", "blue");
+    return createScatterDiagrams(scatterDataPoints, "Method", "Qualified container", "Complexity - McCabe", "Unit Size", "Complexity - McCabe", "blue");
 
 } 
 

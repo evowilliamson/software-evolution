@@ -37,6 +37,10 @@ private ScatterData zoomedScatterData;
 private Quadrant selectedQuandrant;
 private str xAxisTitle;
 private str yAxisTitle;
+private str zAxisTitle;
+private str colorString;
+private str dataPointName;
+private str extraInfo;
 private Figure zoomedScatter;
 private bool clickedScatter = true;
 
@@ -48,7 +52,7 @@ public void main() {
 
 	dataPoints = [DataPoint("bla", toReal(arbInt(200)), toReal(arbInt(200)), toReal(arbInt(300)), "extra") | x <- [1 .. 1000]];
 	
-	render(createScatterDiagrams(dataPoints, "Complexity - McCabe values", "Unit Size", "blue"));
+	render(createScatterDiagrams(dataPoints, "Method", "Qualified container", "Complexity - McCabe values", "Unit Size", "Third variable", "blue"));
 	
 	
 }
@@ -59,19 +63,25 @@ public void main() {
 	@metrics: a list of datapoints of type DataPoint
 	@xAxisTitle_: the title of the x-axis
 	@yAxisTitle_: the title of the y-axis
+	@zAxisTitle_: the title of the z-axis
+	@colorString: the end range of the color model to which zValues can be displayed in the scatter
 	returns: 	an object of type Figure that represents the container objects that contains the two 
 				scatter diagrams
 **/	
-public Figure createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, str yAxisTitle_, str colorString) {
+public Figure createScatterDiagrams(list[DataPoint] metrics, str dataPointName_, str extraInfo_, str xAxisTitle_, str yAxisTitle_, zAxisTitle_, str colorString_) {
 
 	selectedQuandrant = Quadrant(1,1);
+	dataPointName = dataPointName_;
+	extraInfo = extraInfo_;
 	xAxisTitle = xAxisTitle_; 
 	yAxisTitle = yAxisTitle_; 
+	zAxisTitle = zAxisTitle_; 
+	colorString = colorString_;
 	parentScatterData = createScatterData(metrics);
 	updateScatterDataForZoom();
 
-	return vcat([	createScatterDiagram(false ,colorString),
-	 				getZoomedScatter(colorString)
+	return vcat([	createScatterDiagram(false),
+	 				getZoomedScatter()
 				], valign(1.0));
 
 }
@@ -80,7 +90,7 @@ public Figure createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, st
 	Method that creates the zoomed scatter diagram
 	returns: an object of type Figure that represents the scatter diagram
 **/
-private Figure getZoomedScatter(str colorString) {
+private Figure getZoomedScatter() {
 
 	/* 	Use a dynamically computed figure. The reason for this being that this is a independent module. We don't
 		want to render the whole encapsulating Figure, because that would require a call from the ScatterDiagram
@@ -99,7 +109,7 @@ private Figure getZoomedScatter(str colorString) {
     	Figure() {
     		if (clickedScatter) {
     			// only update if clicked, don't react on other events, like mouse movement
-    			zoomedScatter = createScatterDiagram(true, colorString);
+    			zoomedScatter = createScatterDiagram(true);
     			// reset flag
     			clickedScatter = false;
     		} 
@@ -210,7 +220,7 @@ private ScatterData createScatterDataForZoom(list[DataPoint] metrics,
 				must be created
 	@returns: 	an object of type Figure that represents the created scatter diagram
 **/
-public Figure createScatterDiagram(bool isZoom, str colorString) {
+public Figure createScatterDiagram(bool isZoom) {
 
 	ScatterData scatterData = parentScatterData;
 	if (isZoom) {
@@ -219,7 +229,7 @@ public Figure createScatterDiagram(bool isZoom, str colorString) {
 
 	return(box(grid([
 			[
-				box(createGrid(scatterData, isZoom, colorString), vshrink(0.95), hshrink(0.95)),
+				box(createGrid(scatterData, isZoom), vshrink(0.95), hshrink(0.95)),
 				hcat([
 					vcat(createYAxisMetricsInformation(scatterData), halign(0.0)),
 					vcat(createYAxisTitle(scatterData.yAxisTitle), halign(0.0))
@@ -238,7 +248,7 @@ public Figure createScatterDiagram(bool isZoom, str colorString) {
 /**
 	This method creates the ellipses and the boxes that represent the quadrants of the scatter diagram
 **/
-public Figure createGrid(ScatterData scatterData, bool isZoom, str colorString) {
+public Figure createGrid(ScatterData scatterData, bool isZoom) {
 
 	// Create the ellipses that represent the data points
 	list[Figure] dataPoints = [];
@@ -248,7 +258,7 @@ public Figure createGrid(ScatterData scatterData, bool isZoom, str colorString) 
 						halign(calculateAlignInGrid(dataPoint.x, scatterData.minXValue, scatterData.maxXValue)), 
 						valign(1 - calculateAlignInGrid(dataPoint.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), 
 						size(getPointSize(isZoom)), 
-						createDataPointColor(colorString, calculateZValue(dataPoint.z, scatterData.minZValue, scatterData.maxZValue)),
+						createDataPointColor(calculateZValue(dataPoint.z, scatterData.minZValue, scatterData.maxZValue)),
 						//fillColor("red"),
 						popup(getDataPointInfo(dataPoint))
 					]) | dataPoint <- scatterData.metrics
@@ -274,10 +284,10 @@ private real calculateZValue(real value_, real minZ, real maxZ) {
 
 }
 
-private FProperty createDataPointColor(str dataPointColor, real value_) {
+private FProperty createDataPointColor(real value_) {
 
 	from = color("white");
-	to = color(dataPointColor);
+	to = color(colorString);
 	return fillColor(interpolateColor(from, to, value_));
 
 }
@@ -320,7 +330,7 @@ private str getDataPointInfo(DataPoint dataPoint) {
 		print(" \\hline smallsql&<d.extraInfo>.<d.name>()&<d.x>&<d.y>\\\\\n");
 	}*/
 
-	return "<dataPoint.name>()\nPackage: <dataPoint.extraInfo>\nComplexity: <dataPoint.x>\nSize: <dataPoint.y>\nThird: <dataPoint.z>";  
+	return "<dataPointName>: <dataPoint.name>()\n<extraInfo>: <dataPoint.extraInfo>\n<xAxisTitle>: <dataPoint.x>\n<yAxisTitle>: <dataPoint.y>\n<zAxisTitle>: <dataPoint.z>";  
 	
 }
 
