@@ -86,18 +86,25 @@ private Figure createMainPane(){
 
 	mainPane = vcat([
 	 					createTree(),
-	 					getScatterDiagram()
+	 					getScatterDiagrams()
 					 ], valign(1.0));
 	
 	return mainPane;
 }
 
-private Figure getScatterDiagram() {
+/**
+	This method retrieves a figure that is a container of two scatter diagram
+**/
+private Figure getScatterDiagrams() {
 
     return createScatterDiagrams(scatterDataPoints, "Method", "Qualified container", "Complexity - McCabe", "Unit Size", "Complexity - McCabe", "blue");
 
 } 
 
+/**
+	This method updates the method metrics based on the selected layer
+	@id: the cacheitem that refers to the selected layer component
+**/
 private void updateMethodMetrics(int id) {
 
 	ExtendedCache methods = extendedCacheMap[id];
