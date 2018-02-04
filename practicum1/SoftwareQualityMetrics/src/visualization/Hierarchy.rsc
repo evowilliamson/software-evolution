@@ -94,14 +94,18 @@ private Figure createMainPane(){
 
 private Figure getScatterDiagram() {
 
-    return createScatterDiagrams(scatterDataPoints, "Complexity - McCabe values", "Unit Size");
+    return createScatterDiagrams(scatterDataPoints, "Complexity - McCabe values", "Unit Size", "blue");
 
 } 
 
 private void updateMethodMetrics(int id) {
 
 	ExtendedCache methods = extendedCacheMap[id];
-	scatterDataPoints = [DataPoint(method.cacheItem.name, method.cacheItem.complexity, method.cacheItem.size, method.fullPackage) | ExtendedCacheItem method <- methods];
+	scatterDataPoints = [DataPoint(method.cacheItem.name, 
+				toReal(method.cacheItem.complexity), 
+				toReal(method.cacheItem.size),
+				toReal(method.cacheItem.complexity), 
+				method.fullPackage) | ExtendedCacheItem method <- methods];
 	
 }
 

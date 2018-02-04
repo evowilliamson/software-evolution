@@ -45,8 +45,11 @@ private bool clickedScatter = true;
 **/
 public void main() {
 
-	render(createScatterDiagrams([DataPoint("bla", 1, 1, "extra"), DataPoint("bla", 10, 1, "extra"), DataPoint("bla", 1, 10, "extra"), 
-									DataPoint("bla", 10, 10, "extra")], "Complexity - McCabe values", "Unit Size"));
+
+	dataPoints = [DataPoint("bla", toReal(arbInt(200)), toReal(arbInt(200)), toReal(arbInt(300)), "extra") | x <- [1 .. 1000]];
+	
+	render(createScatterDiagrams(dataPoints, "Complexity - McCabe values", "Unit Size", "blue"));
+	
 	
 }
 
@@ -59,7 +62,7 @@ public void main() {
 	returns: 	an object of type Figure that represents the container objects that contains the two 
 				scatter diagrams
 **/	
-public Figure createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, str yAxisTitle_) {
+public Figure createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, str yAxisTitle_, str colorString) {
 
 	selectedQuandrant = Quadrant(1,1);
 	xAxisTitle = xAxisTitle_; 
@@ -67,8 +70,8 @@ public Figure createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, st
 	parentScatterData = createScatterData(metrics);
 	updateScatterDataForZoom();
 
-	return vcat([	createScatterDiagram(false),
-	 				getZoomedScatter()
+	return vcat([	createScatterDiagram(false ,colorString),
+	 				getZoomedScatter(colorString)
 				], valign(1.0));
 
 }
@@ -77,7 +80,7 @@ public Figure createScatterDiagrams(list[DataPoint] metrics, str xAxisTitle_, st
 	Method that creates the zoomed scatter diagram
 	returns: an object of type Figure that represents the scatter diagram
 **/
-private Figure getZoomedScatter() {
+private Figure getZoomedScatter(str colorString) {
 
 	/* 	Use a dynamically computed figure. The reason for this being that this is a independent module. We don't
 		want to render the whole encapsulating Figure, because that would require a call from the ScatterDiagram
@@ -96,7 +99,7 @@ private Figure getZoomedScatter() {
     	Figure() {
     		if (clickedScatter) {
     			// only update if clicked, don't react on other events, like mouse movement
-    			zoomedScatter = createScatterDiagram(true);
+    			zoomedScatter = createScatterDiagram(true, colorString);
     			// reset flag
     			clickedScatter = false;
     		} 
@@ -119,13 +122,18 @@ private void updateScatterDataForZoom() {
 
 	// Now only consider the datapoints that fall into the clicked quadrant
 	list[DataPoint] zoomedMetrics =  
-		[ DataPoint(t.name, t.x, t.y, t.extraInfo)
+		[ DataPoint(t.name, t.x, t.y, t.z, t.extraInfo)
 			| DataPoint t <- parentScatterData.metrics, 
 					t.x >= minXValueClickedQuadrant && t.x <= maxXValueClickedQuadrant && 
 					t.y >= minYValueClickedQuadrant && t.y <= maxYValueClickedQuadrant 
 		];
 	
-	zoomedScatterData = createScatterDataForZoom(zoomedMetrics, minXValueClickedQuadrant, maxXValueClickedQuadrant, minYValueClickedQuadrant, maxYValueClickedQuadrant);
+	// Determine the min and max z values. Input for that are the zoomed points!
+	real minZ = (0.0 | min(it, e.z) | DataPoint e <- zoomedMetrics);
+	real maxZ = (0.0 | max(it, e.z) | DataPoint e <- zoomedMetrics);
+	
+	zoomedScatterData = createScatterDataForZoom(zoomedMetrics, minXValueClickedQuadrant, maxXValueClickedQuadrant, minYValueClickedQuadrant, 
+							maxYValueClickedQuadrant, minZ, maxZ);
 	
 }
 
@@ -136,22 +144,27 @@ private void updateScatterDataForZoom() {
 **/
 private ScatterData createScatterData(list[DataPoint] metrics) {
 
-	int minXValue = 0;
-	int maxXValue = 0;
-	int maxYValue = 0;
-	int minYValue = 0;
+	real minXValue = 0.0;
+	real maxXValue = 0.0;
+	real maxYValue = 0.0;
+	real minYValue = 0.0;
+	real maxZValue = 0.0;
+	real minZValue = 0.0;
 	
 	if (size(metrics) != 0) {
-		list[int] xValues = [metric.x | DataPoint metric <- metrics]; 
+		list[real] xValues = [metric.x | DataPoint metric <- metrics]; 
 		minXValue = min(xValues);
 		maxXValue = max(xValues);
-		list[int] yValues = [metric.y | DataPoint metric <- metrics];
+		list[real] yValues = [metric.y | DataPoint metric <- metrics];
 		maxYValue = max(yValues);
 		minYValue = min(yValues);
+		list[real] zValues = [metric.z | DataPoint metric <- metrics];
+		maxZValue = max(zValues);
+		minZValue = min(zValues);
 	}
 	
 
-	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle); 
+	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, maxZValue, minZValue, xAxisTitle, yAxisTitle); 
 
 }
 
@@ -162,21 +175,27 @@ private ScatterData createScatterDataForZoom(list[DataPoint] metrics,
 				real minXValueClickedQuadrant,
 				real maxXValueClickedQuadrant,
 				real minYValueClickedQuadrant,
-				real maxYValueClickedQuadrant) {
+				real maxYValueClickedQuadrant,
+				real minZValueClickedQuadrant,
+				real maxZValueClickedQuadrant) {
 
-	int minXValue = 0;
-	int maxXValue = 0;
-	int maxYValue = 0;
-	int minYValue = 0;
+	real minXValue = 0.0;
+	real maxXValue = 0.0;
+	real maxYValue = 0.0;
+	real minYValue = 0.0;
+	real maxZValue = 0.0;
+	real minZValue = 0.0;
 	
 	if (size(metrics) != 0) {
-		minXValue = round(minXValueClickedQuadrant);
-		maxXValue = round(maxXValueClickedQuadrant);
-		maxYValue = round(maxYValueClickedQuadrant);
-		minYValue = round(minYValueClickedQuadrant);
+		minXValue = minXValueClickedQuadrant;
+		maxXValue = maxXValueClickedQuadrant;
+		maxYValue = maxYValueClickedQuadrant;
+		minYValue = minYValueClickedQuadrant;
+		minZValue = minZValueClickedQuadrant;
+		maxZValue = maxZValueClickedQuadrant;
 	}
 
-	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, xAxisTitle, yAxisTitle); 
+	return ScatterData(metrics, maxXValue, minXValue, maxYValue, minYValue, maxZValue, minZValue, xAxisTitle, yAxisTitle); 
 
 }
 
@@ -191,7 +210,7 @@ private ScatterData createScatterDataForZoom(list[DataPoint] metrics,
 				must be created
 	@returns: 	an object of type Figure that represents the created scatter diagram
 **/
-public Figure createScatterDiagram(bool isZoom) {
+public Figure createScatterDiagram(bool isZoom, str colorString) {
 
 	ScatterData scatterData = parentScatterData;
 	if (isZoom) {
@@ -200,7 +219,7 @@ public Figure createScatterDiagram(bool isZoom) {
 
 	return(box(grid([
 			[
-				box(createGrid(scatterData, isZoom), vshrink(0.95), hshrink(0.95)),
+				box(createGrid(scatterData, isZoom, colorString), vshrink(0.95), hshrink(0.95)),
 				hcat([
 					vcat(createYAxisMetricsInformation(scatterData), halign(0.0)),
 					vcat(createYAxisTitle(scatterData.yAxisTitle), halign(0.0))
@@ -219,20 +238,22 @@ public Figure createScatterDiagram(bool isZoom) {
 /**
 	This method creates the ellipses and the boxes that represent the quadrants of the scatter diagram
 **/
-public Figure createGrid(ScatterData scatterData, bool isZoom) {
+public Figure createGrid(ScatterData scatterData, bool isZoom, str colorString) {
 
 	// Create the ellipses that represent the data points
+	list[Figure] dataPoints = [];
 	dataPoints = [
 				ellipse(
 					[
 						halign(calculateAlignInGrid(dataPoint.x, scatterData.minXValue, scatterData.maxXValue)), 
 						valign(1 - calculateAlignInGrid(dataPoint.y, scatterData.minYValue, scatterData.maxYValue)), resizable(false), 
 						size(getPointSize(isZoom)), 
-						fillColor("gray"),
-						popup(getMethodInfo(dataPoint))
+						createDataPointColor(colorString, calculateZValue(dataPoint.z, scatterData.minZValue, scatterData.maxZValue)),
+						//fillColor("red"),
+						popup(getDataPointInfo(dataPoint))
 					]) | dataPoint <- scatterData.metrics
 				];
-				
+
 	// Creatae the empty grid. The grid contains dashed boxes
 	emptyGrid = grid([createDashedGridBoxes(isZoom)]);
 	
@@ -241,6 +262,26 @@ public Figure createGrid(ScatterData scatterData, bool isZoom) {
 	return filledGrid;
 	
 } 
+
+private real calculateZValue(real value_, real minZ, real maxZ) {
+
+	if (maxZ - minZ == 0) {
+		return 0.0;
+	}
+	else {
+		return (value_ - minZ)/(maxZ - minZ);
+	}
+
+}
+
+private FProperty createDataPointColor(str dataPointColor, real value_) {
+
+	from = color("white");
+	to = color(dataPointColor);
+	return fillColor(interpolateColor(from, to, value_));
+
+}
+
 
 /**
 	This method creates the boxes inside the scatter grid
@@ -273,9 +314,13 @@ private list[Figure] createDashedGridBoxes(bool isZoom) {
 					of its parent and the name of the method itself
 	returns: 		the construced string with all the info
 **/
-private str getMethodInfo(DataPoint dataPoint) {
+private str getDataPointInfo(DataPoint dataPoint) {
 
-	return "<dataPoint.name>()\nPackage: <dataPoint.extraInfo>\nComplexity: <dataPoint.x>\nSize: <dataPoint.y>";  
+	/*for (d <- [] + dataPoint) {
+		print(" \\hline smallsql&<d.extraInfo>.<d.name>()&<d.x>&<d.y>\\\\\n");
+	}*/
+
+	return "<dataPoint.name>()\nPackage: <dataPoint.extraInfo>\nComplexity: <dataPoint.x>\nSize: <dataPoint.y>\nThird: <dataPoint.z>";  
 	
 }
 
@@ -380,7 +425,7 @@ private Quadrant selectQuadrant(int x, int y) {
 	@max		max boundary of the grid
 	
 **/
-private real calculateAlignInGrid(int x, int min, int max) {
+private real calculateAlignInGrid(real x, real min, real max) {
 
 	if (max == min) 
 		return 1.0;
