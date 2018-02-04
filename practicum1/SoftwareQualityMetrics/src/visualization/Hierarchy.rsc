@@ -9,8 +9,8 @@ import util::Math;
 import Map;
 import calc::Cache;
 import visualization::Helper;
-import visualization::scatter::ScatterDiagram;
-import visualization::scatter::Types;
+import visualization::ScatterDiagram;
+import visualization::Types;
 
 alias TreeItem = tuple[calc::Cache::CacheItem item, bool collapsed];
 alias TreeStructure = list[TreeItem];
@@ -86,22 +86,33 @@ private Figure createMainPane(){
 
 	mainPane = vcat([
 	 					createTree(),
-	 					getScatterDiagram()
+	 					getScatterDiagrams()
 					 ], valign(1.0));
 	
 	return mainPane;
 }
 
-private Figure getScatterDiagram() {
+/**
+	This method retrieves a figure that is a container of two scatter diagram
+**/
+private Figure getScatterDiagrams() {
 
-    return createScatterDiagrams(scatterDataPoints, "Complexity - McCabe values", "Unit Size");
+    return createScatterDiagrams(scatterDataPoints, "Method", "Qualified container", "Complexity - McCabe", "Unit Size", "Complexity - McCabe", "blue");
 
 } 
 
+/**
+	This method updates the method metrics based on the selected layer
+	@id: the cacheitem that refers to the selected layer component
+**/
 private void updateMethodMetrics(int id) {
 
 	ExtendedCache methods = extendedCacheMap[id];
-	scatterDataPoints = [DataPoint(method.cacheItem.name, method.cacheItem.complexity, method.cacheItem.size, method.fullPackage) | ExtendedCacheItem method <- methods];
+	scatterDataPoints = [DataPoint(method.cacheItem.name, 
+				toReal(method.cacheItem.complexity), 
+				toReal(method.cacheItem.size),
+				toReal(method.cacheItem.complexity), 
+				method.fullPackage) | ExtendedCacheItem method <- methods];
 	
 }
 
