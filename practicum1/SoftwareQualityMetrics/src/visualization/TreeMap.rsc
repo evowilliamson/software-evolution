@@ -47,10 +47,7 @@ private void startDrawPage(){
 	
 	Figures children = [];
 	if (viewChoice == calc::Cache::APPLICATION){
-		children = getChildrenAllItemTypes(application.id, calc::Cache::METHOD);
-	}
-	if (viewChoice == calc::Cache::PACKAGE){
-		children = getChildrenAllItemTypes(application.id, calc::Cache::PACKAGE);
+		children = getChildrenAllItemTypes(application.id);
 	}
 	else{
 		children = getChildrenOfItemType();		
@@ -82,7 +79,7 @@ private void choice(str s){
 }
 
 /**
-Get figures for the children of a item type (e.g. class, package). Depends on the choice in the combo.
+Get figures for all the children of a item type (e.g. class, package). Depends on the choice in the combo.
 @return: a list with figures 
 **/
 private Figures getChildrenOfItemType(){
@@ -95,7 +92,13 @@ private Figures getChildrenOfItemType(){
 		if (item.size > 0){
 			itemArea = toReal((item.size / toReal(applicationItem.size))*100);
 		}
-
+		
+		if (item.itemType == calc::Cache::PACKAGE){					 
+			children += box(
+		    	area(itemArea),
+				fillColor(interpolateColor(color(COLOR_START), color(COLOR_END), (item.size / toReal(applicationItem.size)))), 
+				visualization::Helper::popup(getItemInfo(item, cache)));
+		}
 		if (item.itemType == calc::Cache::FILE){					 
 			children += box(
 		    	area(itemArea),
@@ -119,6 +122,8 @@ private Figures getChildrenOfItemType(){
 	return children;
 }
 
+/**
+**/
 private Color calculateCCColorForClass(int classId){
 	classMethods = [item | item <- cache, item.parentId == classId];
 	
@@ -205,25 +210,25 @@ private Color calculateColor(int currentValue, calc::Threshold::ThresholdRanksEx
 }
 
 /**
-Get the children of them item with the given parent id unitl the endType
+Get the children of them item with the given parent id
 **/
-private Figures getChildrenAllItemTypes(int parentId, int endType){
+private Figures getChildrenAllItemTypes(int parentId){
 	items = calc::Cache::GetItemsWithParent(cache, parentId);
 	
 	currentItem = cache[parentId-1];
 	applicationItem = cache[0];
 
 	Figures children = [];
-	for(item <- items){
-		c = getChildrenAllItemTypes(item.id, endType);
+	for(item <- items){		
+		c = getChildrenAllItemTypes(item.id);
 		t = treemap(c, shrink(0.95));		
 		
 		real itemArea = 1.0; //minmum value
 		if (currentItem.size > 0){
 			itemArea = toReal(item.size / toReal(applicationItem.size)*100);
 		}
-		//println("<item.size> - <currentItem.size> - <itemArea>");
-		if ((item.itemType != calc::Cache::FILE) && (item.itemType <= endType)){					
+		//println("<item.size> - <currentItem.size> - <itemArea>");				
+		if (item.itemType != calc::Cache::FILE){
 			children += box(t,
 			    area(itemArea),
 				fillColor(visualization::Helper::getColor(item.itemType)), 
@@ -231,7 +236,7 @@ private Figures getChildrenAllItemTypes(int parentId, int endType){
 		}
 		else{
 			children += t;
-		}	
+		}			
 	}
 	
 	return children; 
