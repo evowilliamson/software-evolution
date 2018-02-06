@@ -96,7 +96,7 @@ private Figures getChildrenOfItemType(){
 		if (item.itemType == calc::Cache::PACKAGE){					 
 			children += box(
 		    	area(itemArea),
-				fillColor(interpolateColor(color(COLOR_START), color(COLOR_END), (item.size / toReal(applicationItem.size)))), 
+				fillColor(interpolateColor(color(COLOR_START), color(COLOR_END), (item.complexity / toReal(applicationItem.complexity)))), 
 				visualization::Helper::popup(getItemInfo(item, cache)));
 		}
 		if (item.itemType == calc::Cache::FILE){					 
