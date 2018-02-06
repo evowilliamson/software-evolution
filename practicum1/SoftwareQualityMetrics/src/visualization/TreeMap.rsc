@@ -123,6 +123,9 @@ private Figures getChildrenOfItemType(){
 }
 
 /**
+Calculate the color for the aggregrated cc for a class
+@classId: the id of the class in the cache
+@return the color representing the aggregrated cc
 **/
 private Color calculateCCColorForClass(int classId){
 	classMethods = [item | item <- cache, item.parentId == classId];
