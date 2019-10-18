@@ -10,8 +10,9 @@ This repository contain notes and links of my golang learning experience
 ### Study notes
 |Date| Note |
 |--|--|
+|09/20/2019|Started reading [The Go Programming Language](https://github.com/evowilliamson/golang-learning/blob/master/resources/The%20go%20programming%20language%20(personal%20copy).pdf)|
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbOTg5MzUyMTI3LC04ODA2ODY2OTksMTg0Mz
-k4NDI5MSwxODk4ODM4ODczXX0=
+eyJoaXN0b3J5IjpbLTE1MjAwODYwMiwtODgwNjg2Njk5LDE4ND
+M5ODQyOTEsMTg5ODgzODg3M119
 -->
