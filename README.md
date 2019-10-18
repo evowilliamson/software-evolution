@@ -6,7 +6,7 @@ This repository contain notes and links of my golang learning experience
 |Article/Book| Authors |  Comments 
 |--|--|--|
 |[The Go Programming Language](https://github.com/evowilliamson/golang-learning/blob/master/resources/The%20go%20programming%20language%20(personal%20copy).pdf)|A. Donovan, B Kernighan|
-|[Getting to Go: The Journey of Go's Garbage Collector](https://blog.golang.org/ismmkeynote) | Richard L. Hudson |
+|[Getting to Go: The Journey of Go's Garbage Collector](https://blog.golang.org/ismmkeynote) | Richard L. Hudson | Rethinking the entire go garbage collection stack
 |[The tail at scale](https://github.com/evowilliamson/golang-learning/blob/master/resources/The%20tail%20at%20scale%20-%20Dean.pdf) | J. Dean L. Barroso | Article that explains how using an approach analogous to fault-tolerant computing, tail-tolerant software techniques form a predictable whole out of less-predictable parts in order to guarantee seamless interactive and scalable web applications
 
 ### Study notes
@@ -17,7 +17,7 @@ This repository contain notes and links of my golang learning experience
 |10/18/2019| Hudson ([Getting to Go: The Journey of Go's Garbage Collector](https://blog.golang.org/ismmkeynote)) mentions [The tail at scale](https://github.com/evowilliamson/golang-learning/blob/master/resources/The%20tail%20at%20scale%20-%20Dean.pdf). This seems to be an interesting article regarding scaling web applications that also mentions Lamport's Paxos implementation. Reading it first, then go back to [Getting to Go: The Journey of Go's Garbage Collector](https://blog.golang.org/ismmkeynote)
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTg0ODk2MzAzLDE5OTI2MzE3NjIsNjcxNj
-AzNTI5LC0xNTY5ODI0MzQ0LC0xNTIwMDg2MDIsLTg4MDY4NjY5
-OSwxODQzOTg0MjkxLDE4OTg4Mzg4NzNdfQ==
+eyJoaXN0b3J5IjpbMTE0MzY1Mjg1NSwxOTkyNjMxNzYyLDY3MT
+YwMzUyOSwtMTU2OTgyNDM0NCwtMTUyMDA4NjAyLC04ODA2ODY2
+OTksMTg0Mzk4NDI5MSwxODk4ODM4ODczXX0=
 -->
